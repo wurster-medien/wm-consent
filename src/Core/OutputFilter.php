@@ -90,7 +90,10 @@ final class OutputFilter
         return self::process($html)['html'];
     }
 
-    /** Platzhalter für iframemanager mit Titel und Größe des iframes (Videos 16:9, sonst die Höhe des iframes). */
+    /**
+     * Platzhalter für iframemanager mit Titel, Klasse und Größe des iframes: Videos 16:9, sonst die Höhe des iframes;
+     * bestimmt die Klasse die Größe schon (h-full, aspect-…), bleibt es bei ihr.
+     */
     private static function placeholder(string $service, string $src, string $attributes): string
     {
         if ($service === 'youtube') {
@@ -105,12 +108,13 @@ final class OutputFilter
         $height = (string) self::attribute($attributes, 'height');
         $class = (string) self::attribute($attributes, 'class');
         $video = in_array($service, ['youtube', 'vimeo'], true);
-        $style = ! $video && preg_match('/^\d+$/', $height) === 1 ? ' style="height:'.$height.'px"' : '';
+        $sizedByClass = preg_match('/(^|\s)(h-full|h-screen|aspect-[^\s]+)(\s|$)/', $class) === 1;
+        $style = ! $video && ! $sizedByClass && preg_match('/^\d+$/', $height) === 1 ? ' style="height:'.$height.'px"' : '';
 
         return '<div data-service="'.$service.'" data-id="'.self::escape($src).'"'
             .($title !== '' ? ' data-title="'.self::escape($title).'"' : '')
             .($class !== '' ? ' class="'.self::escape($class).'"' : '')
-            .($video ? ' data-autoscale' : '')
+            .($video && ! $sizedByClass ? ' data-autoscale' : '')
             .$style.'></div>';
     }
 

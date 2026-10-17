@@ -50,6 +50,14 @@ class OutputFilterTest extends TestCase
         $this->assertSame(['youtube', 'google_maps'], $result['detected']);
     }
 
+    public function test_frames_sized_by_their_class_keep_that_size(): void
+    {
+        $this->assertSame(
+            '<div data-service="vimeo" data-id="https://player.vimeo.com/video/1" class="w-full h-full"></div>',
+            OutputFilter::filter('<iframe class="w-full h-full" src="https://player.vimeo.com/video/1"></iframe>'),
+        );
+    }
+
     public function test_found_services_are_written_into_the_head_config(): void
     {
         $html = HeadTag::render(['services' => ['vimeo']], '/wm-consent', '1')
