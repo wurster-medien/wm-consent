@@ -344,3 +344,32 @@ div[data-service] div.c-n-a .c-l-b:not(:only-child)::before {
         display: none;
     }
 }
+
+/* Nur ein Dienst in der Kategorie: kein zweiter Schalter, der Schalter der Kategorie reicht. */
+#cc-main .pm__section-services:has(> .pm__service:only-child) {
+    display: none;
+}
+
+/* Icons auch an den Knöpfen der Einstellungen. */
+#cc-main .pm__btn::before {
+    content: "";
+    flex-shrink: 0;
+    width: 1.1em;
+    height: 1.1em;
+    background: currentColor;
+    -webkit-mask: var(--wm-icon) center / contain no-repeat;
+    mask: var(--wm-icon) center / contain no-repeat;
+}
+
+#cc-main .pm__btn[data-role="all"] { --wm-icon: var(--wm-icon-check); }
+#cc-main .pm__btn[data-role="necessary"] { --wm-icon: var(--wm-icon-x); }
+#cc-main .pm__btn[data-role="save"] { --wm-icon: var(--wm-icon-save); }
+
+:root {
+    --wm-icon-save: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 4h11l3 3v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4Z'/%3E%3Cpath d='M8 4v5h7V4M8 20v-6h8v6'/%3E%3C/svg%3E");
+}
+
+/* Auch auf dem Handy keine Linie über den Knöpfen (CookieConsent setzt sie dort mit stärkerer Regel). */
+#cc-main .cm.cm--box .cm__btns {
+    border-top: 0;
+}
