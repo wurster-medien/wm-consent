@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use WursterMedien\Consent\Core\OutputFilter;
+use WursterMedien\Consent\Settings;
 
 /**
  * Blockt bekannte Tracker und Einbettungen im ausgelieferten HTML (OutputFilter), nur für HTML-Antworten der Seite
@@ -17,7 +18,7 @@ class FilterOutput
     {
         $response = $next($request);
 
-        if (! config('wm-consent.enabled', true) || ! config('wm-consent.filter', true)) {
+        if (! app(Settings::class)->get('enabled', true) || ! app(Settings::class)->get('filter', true)) {
             return $response;
         }
 

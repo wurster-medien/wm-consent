@@ -10,6 +10,9 @@ return [
     /* Banner, Kopf-Tag und Ausgabefilter an (false: {{ wm_consent }} gibt nichts aus, nichts wird blockiert). */
     'enabled' => env('WM_CONSENT_ENABLED', true),
 
+    /* Was im Control Panel (Werkzeuge → Cookie-Banner) gespeichert ist; geht vor den Werten in dieser Datei. */
+    'settings_path' => base_path('content/wm-consent.yaml'),
+
     /* Bekannte Tracker und Einbettungen beim Ausliefern blockieren (src/Core/OutputFilter.php). */
     'filter' => true,
 

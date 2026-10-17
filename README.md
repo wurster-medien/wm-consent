@@ -21,6 +21,11 @@ composer require wurster-medien/wm-consent
 php artisan vendor:publish --tag=wm-consent-config   # config/wm-consent.php: Farben, Links, GA-ID
 ```
 
+Einstellungen im Control Panel unter **Werkzeuge → Cookie-Banner** (Recht „Cookie-Banner verwalten“, Statamic 5 und
+6): Allgemein (an/aus, Darstellung, Position, Unschärfe, Links, GA-ID, Dienste), Farben (hell/dunkel), Cookies (eigene
+Einträge), Texte. Gespeichert in `content/wm-consent.yaml` (mit der Seite im Git), `config/wm-consent.php` ist nur die
+Voreinstellung. „Beim Speichern alle neu fragen“ erhöht die Revision.
+
 Im Layout:
 
 ```antlers

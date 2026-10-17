@@ -198,7 +198,7 @@
 }
 
 #cc-main .cm__desc {
-    font-size: 0.9em;
+    font-size: 0.95em;
     line-height: 1.55;
     color: var(--cc-primary-color);
     max-height: 40vh;
@@ -210,7 +210,7 @@
     align-items: center;
     justify-content: center;
     gap: 0.5em;
-    font-size: 0.88em;
+    font-size: 0.9em;
     font-weight: 500;
     min-height: 2.75em;
 }
@@ -234,7 +234,15 @@
 }
 
 #cc-main .pm {
-    font-size: 0.95em;
+    font-size: 1em;
+}
+
+#cc-main .pm--box {
+    max-width: 48em;
+}
+
+#cc-main .pm__section-title {
+    font-size: 1em;
 }
 
 #cc-main .pm__section-desc,

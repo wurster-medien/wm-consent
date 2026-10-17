@@ -272,7 +272,7 @@ function alwaysFirst() {
 function applyTheme(theme, mode) {
     const style = document.createElement('style');
     const body = window.getComputedStyle(document.body || document.documentElement);
-    const fontSize = Math.max(15, Math.min(18, parseFloat(body.fontSize) || 16));
+    const fontSize = Math.max(16, Math.min(18, parseFloat(body.fontSize) || 16));
     const headingElement = document.querySelector('h1, h2, h3');
     const headingFont = headingElement ? window.getComputedStyle(headingElement).fontFamily : '';
     style.setAttribute('data-wm-consent-theme', '');

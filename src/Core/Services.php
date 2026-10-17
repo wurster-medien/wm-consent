@@ -47,6 +47,30 @@ final class Services
     /** @var list<string> */
     public const CATEGORIES = ['necessary', 'analytics', 'marketing', 'media'];
 
+    /**
+     * Namen für Auswahllisten (Control Panel), wie in resources/js/services.js.
+     *
+     * @var array<string, string>
+     */
+    public const LABELS = [
+        'google_analytics' => 'Google Analytics',
+        'google_tag_manager' => 'Google Tag Manager',
+        'matomo' => 'Matomo',
+        'hotjar' => 'Hotjar',
+        'clarity' => 'Microsoft Clarity',
+        'meta_pixel' => 'Meta Pixel',
+        'linkedin' => 'LinkedIn Insight',
+        'google_ads' => 'Google Ads',
+        'tiktok' => 'TikTok Pixel',
+        'youtube' => 'YouTube',
+        'vimeo' => 'Vimeo',
+        'google_maps' => 'Google Maps',
+        'instagram' => 'Instagram',
+        'facebook' => 'Facebook',
+        'calendly' => 'Calendly',
+        'openstreetmap' => 'OpenStreetMap',
+    ];
+
     public static function category(string $service): ?string
     {
         if (isset(self::SCRIPTS[$service])) {

@@ -4,8 +4,10 @@ namespace WursterMedien\Consent\Tests\Statamic;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
+use Statamic\Facades\User;
 use Statamic\Testing\AddonTestCase;
 use WursterMedien\Consent\ServiceProvider;
+use WursterMedien\Consent\Settings;
 
 class AddonTest extends AddonTestCase
 {
@@ -17,11 +19,14 @@ class AddonTest extends AddonTestCase
 
         $app['config']->set('app.url', 'https://kunde.test');
         $app['config']->set('wm-consent.colors.light.highlight', '#c2410c');
+        $app['config']->set('wm-consent.settings_path', dirname(__DIR__).'/__fixtures__/content/wm-consent.yaml');
+        $app['config']->set('statamic.editions.pro', true);
     }
 
     protected function tearDown(): void
     {
         $this->app['files']->deleteDirectory(self::views());
+        $this->app['files']->delete(config('wm-consent.settings_path'));
 
         parent::tearDown();
     }
@@ -74,6 +79,47 @@ class AddonTest extends AddonTestCase
 
         $this->assertSame('', $this->render('{{ wm_consent }}'));
         $this->get('/aus')->assertSee('<iframe src="https://www.youtube.com/embed/abc"></iframe>', false);
+    }
+
+    public function test_the_control_panel_page_saves_settings_that_reach_the_banner(): void
+    {
+        $this->actingAs(User::make()->email('agentur@kunde.test')->makeSuper()->save());
+
+        $this->get(cp_route('wm-consent.edit'))->assertOk();
+
+        $form = app(Settings::class)->formValues();
+        $this->assertSame('#c2410c', $form['light_highlight']);
+
+        $this->patchJson(cp_route('wm-consent.update'), [
+            ...$form,
+            'mode' => 'dark',
+            'position' => 'middle center',
+            'dark_background' => '#1e293b',
+            'dark_overlay' => 'rgba(51, 65, 85, .7)',
+            'text_title' => 'Cookies bei uns',
+            'services' => ['youtube'],
+            'cookies' => [['name' => 'warenkorb', 'type' => 'local', 'category' => 'necessary', 'duration' => 'bis zum Löschen', 'description' => 'Auswahl']],
+            'reconsent' => true,
+        ])->assertOk();
+
+        $html = $this->render('{{ wm_consent }}');
+        $this->assertStringContainsString('"mode":"dark","position":"middle center"', $html);
+        $this->assertStringContainsString('"background":"#1e293b"', $html);
+        $this->assertStringContainsString('"overlay":"rgba(51, 65, 85, .7)"', $html);
+        $this->assertStringContainsString('"highlight":"#c2410c"', $html);
+        $this->assertStringContainsString('"title":"Cookies bei uns"', $html);
+        $this->assertStringContainsString('"revision":1', $html);
+        $this->assertStringContainsString('"name":"warenkorb"', $html);
+        $this->assertSame(['youtube'], app(Settings::class)->get('services'));
+    }
+
+    public function test_only_people_with_the_permission_open_the_page(): void
+    {
+        $this->actingAs(User::make()->email('redaktion@kunde.test')->save());
+
+        $this->assertContains($this->get(cp_route('wm-consent.edit'))->status(), [302, 403]);
+        $this->assertContains($this->patchJson(cp_route('wm-consent.update'), ['mode' => 'dark'])->status(), [302, 401, 403]);
+        $this->assertFileDoesNotExist(config('wm-consent.settings_path'));
     }
 
     /** Wie eine echte View-Datei rendern (Antlers::parse() behandelt Text in Statamic 6 als Nutzerinhalt ohne Tags). */

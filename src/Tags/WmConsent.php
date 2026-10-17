@@ -5,6 +5,7 @@ namespace WursterMedien\Consent\Tags;
 use Statamic\Tags\Tags;
 use WursterMedien\Consent\Core\HeadTag;
 use WursterMedien\Consent\Core\Services;
+use WursterMedien\Consent\Settings;
 
 /**
  * {{ wm_consent }} im <head> jedes Layouts: Banner, Einstellungen der Seite und auf Wunsch Google Analytics; einzelne
@@ -22,12 +23,12 @@ class WmConsent extends Tags
 
     public function index(): string
     {
-        if (! config('wm-consent.enabled', true)) {
+        if (! app(Settings::class)->get('enabled', true)) {
             return '';
         }
 
         $path = (string) parse_url(url('wm-consent'), PHP_URL_PATH);
-        $settings = (array) config('wm-consent');
+        $settings = app(Settings::class)->all();
 
         foreach (self::PARAMETERS as $key) {
             if ($this->params->has($key)) {
@@ -47,7 +48,7 @@ class WmConsent extends Tags
      */
     public static function laravelCookies(): array
     {
-        if (! config('wm-consent.auto_cookies', true)) {
+        if (! app(Settings::class)->get('auto_cookies', true)) {
             return [];
         }
 
@@ -72,7 +73,7 @@ class WmConsent extends Tags
     {
         $content = (string) $this->parse();
 
-        if (! config('wm-consent.enabled', true)) {
+        if (! app(Settings::class)->get('enabled', true)) {
             return $content;
         }
 
