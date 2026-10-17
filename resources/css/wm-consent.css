@@ -82,10 +82,12 @@
 }
 
 #cc-main .wm-cookie-group {
-    display: block;
-    border: 1px solid var(--cc-cookie-category-block-border);
+    display: flex;
+    flex-direction: column;
+    gap: 0.7em;
+    padding: 0.9em 1em;
     border-radius: var(--cc-btn-border-radius);
-    overflow: hidden;
+    background: var(--cc-bg);
 }
 
 #cc-main .wm-cookie-service {
@@ -93,8 +95,6 @@
     flex-wrap: wrap;
     align-items: baseline;
     gap: 0.25em 0.75em;
-    padding: 0.65em 0.9em;
-    background: var(--cc-cookie-category-block-bg);
 }
 
 #cc-main .wm-cookie-title {
@@ -109,8 +109,6 @@
 
 #cc-main .wm-cookie {
     display: block;
-    padding: 0.65em 0.9em;
-    border-top: 1px solid var(--cc-cookie-category-block-border);
 }
 
 #cc-main .wm-cookie-head {
@@ -133,7 +131,7 @@
     border-radius: 999px;
     font-size: 0.8em;
     line-height: 1.5;
-    background: var(--cc-cookie-category-block-bg);
+    background: var(--wm-consent-muted);
     color: var(--cc-secondary-color);
 }
 
@@ -142,20 +140,23 @@
     color: var(--cc-secondary-color);
 }
 
-/* Geöffnete Kategorie in den Einstellungen markieren: Rahmen und Kopfzeile in der Akzentfarbe. */
-#cc-main .pm__section--toggle.is-expanded {
-    border: 1px solid var(--wm-consent-accent);
-    border-radius: var(--cc-btn-border-radius);
-    overflow: hidden;
-}
-
-#cc-main .pm__section--toggle.is-expanded .pm__section-title {
-    background: color-mix(in srgb, var(--wm-consent-accent) 18%, var(--cc-bg));
+/* Kategorien als ruhige Karten ohne Rahmen; die geöffnete erkennt man an Titel und Pfeil in der Akzentfarbe. */
+#cc-main .pm__section--toggle .pm__section-title,
+#cc-main .pm__section--toggle .pm__section-desc-wrapper {
     border-color: transparent;
 }
 
-#cc-main .pm__section--toggle.is-expanded .pm__section-title:hover {
-    background: color-mix(in srgb, var(--wm-consent-accent) 26%, var(--cc-bg));
+#cc-main .pm__section--toggle.is-expanded .pm__section-title {
+    color: var(--wm-consent-accent);
+}
+
+#cc-main .pm__section--toggle.is-expanded .pm__section-arrow {
+    background: var(--wm-consent-accent);
+    color: var(--wm-consent-on-accent);
+}
+
+#cc-main .pm__section--toggle.is-expanded .pm__section-desc-wrapper {
+    padding-bottom: 0.4em;
 }
 
 /* Links im Footer (Datenschutz, Impressum) mittig. */
