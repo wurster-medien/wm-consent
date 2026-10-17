@@ -22,7 +22,6 @@ export function texts(overrides, config) {
         loadOnce: 'Einmal laden',
         loadAlways: 'Immer laden',
         reopen: 'Cookie-Einstellungen',
-        providers: 'Anbieter',
         thisWebsite: 'Diese Website',
         footer,
     };

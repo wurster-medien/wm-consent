@@ -120,21 +120,13 @@ function translation() {
     const sections = [{ title: t.preferencesIntroTitle, description: t.preferencesIntro }];
 
     for (const [category, info] of Object.entries(CATEGORIES)) {
-        const rows = cookieRows(category);
+        const list = cookieList(category);
 
-        if (category !== 'necessary' && !serviceKeys.some((key) => SERVICES[key].category === category) && rows.length === 0) {
+        if (category !== 'necessary' && list === '') {
             continue;
         }
 
-        sections.push({
-            title: info.title,
-            description: info.description + providerLinks(category),
-            linkedCategory: category,
-            cookieTable: rows.length === 0 ? undefined : {
-                headers: { name: 'Name', service: 'Dienst', duration: 'Dauer', description: 'Zweck' },
-                body: rows,
-            },
-        });
+        sections.push({ title: info.title, description: info.description + list, linkedCategory: category });
     }
 
     sections.push({ title: t.moreTitle, description: t.more });
@@ -164,40 +156,48 @@ function translation() {
  * Zeilen der Cookie-Tabelle einer Kategorie: Vorlagen der Dienste dieser Seite, eigene Einträge, bei „Notwendig“
  * dazu die Cookies des Banners.
  */
-function cookieRows(category) {
-    const storage = { local: ' (Local Storage)', session: ' (Session Storage)', cookie: '' };
+function cookieList(category) {
     const own = category === 'necessary' ? ownCookies(Number(config.cookieDays || 182), mediaServices, (key) => SERVICES[key].label) : [];
-    const rows = [...own, ...siteCookies.filter((cookie) => (cookie.category || 'necessary') === category)].map((cookie) => ({
-        name: escapeHtml(cookie.name) + (storage[cookie.type] || ''),
-        service: escapeHtml(cookie.provider || t.thisWebsite),
-        duration: escapeHtml(cookie.duration || '–'),
-        description: escapeHtml(cookie.description || ''),
-    }));
+    const groups = [];
+    const websiteCookies = [...own, ...siteCookies.filter((cookie) => (cookie.category || 'necessary') === category && !cookie.provider)];
 
-    for (const key of serviceKeys.filter((key) => SERVICES[key].category === category)) {
-        for (const cookie of SERVICES[key].cookies || []) {
-            rows.push({
-                name: escapeHtml(cookie.name),
-                service: escapeHtml(SERVICES[key].label),
-                duration: escapeHtml(cookie.duration),
-                description: escapeHtml(cookie.description),
-            });
-        }
+    if (websiteCookies.length > 0) {
+        groups.push({ title: t.thisWebsite, provider: '', privacy: config.privacyUrl || '', cookies: websiteCookies });
     }
 
-    return rows;
+    for (const cookie of siteCookies.filter((cookie) => (cookie.category || 'necessary') === category && cookie.provider)) {
+        const group = groups.find((entry) => entry.title === cookie.provider);
+        group ? group.cookies.push(cookie) : groups.push({ title: cookie.provider, provider: '', privacy: '', cookies: [cookie] });
+    }
+
+    for (const key of serviceKeys.filter((key) => SERVICES[key].category === category)) {
+        const service = SERVICES[key];
+        groups.push({ title: service.label, provider: service.provider || '', privacy: service.privacy || '', cookies: service.cookies || [] });
+    }
+
+    return groups.length === 0 ? '' : `<span class="wm-cookies">${groups.map(cookieGroup).join('')}</span>`;
 }
 
-/** „Anbieter: Google Analytics (Google Ireland Limited, Irland, Datenschutz) …“ unter der Beschreibung der Kategorie. */
-function providerLinks(category) {
-    const items = serviceKeys.filter((key) => SERVICES[key].category === category).map((key) => {
-        const service = SERVICES[key];
-        const privacy = service.privacy ? `, <a href="${escapeHtml(service.privacy)}" target="_blank" rel="noopener">Datenschutz</a>` : '';
+/**
+ * Ein Dienst bzw. „Diese Website“ in der Cookie-Liste: Name, Anbieter und Datenschutz in einer Zeile, darunter je
+ * Eintrag Name mit Dauer (und Art, wenn nicht Cookie) als Marke und der Zweck als Satz. Nur span-Elemente, weil
+ * CookieConsent die Beschreibung in ein <p> setzt.
+ */
+function cookieGroup(group) {
+    const storage = { local: 'Local Storage', session: 'Session Storage' };
+    const privacy = group.privacy ? `<a href="${escapeHtml(group.privacy)}" target="_blank" rel="noopener">Datenschutz</a>` : '';
+    const meta = [group.provider ? escapeHtml(group.provider) : '', privacy].filter(Boolean).join(' · ');
+    const rows = group.cookies.map((cookie) => {
+        const badges = [cookie.duration, storage[cookie.type]].filter((value) => value && value !== '–')
+            .map((value) => `<span class="wm-cookie-badge">${escapeHtml(value)}</span>`).join('');
+        const name = cookie.name && cookie.name !== '–' ? `<span class="wm-cookie-name">${escapeHtml(cookie.name)}</span>` : '';
 
-        return `${escapeHtml(service.label)} (${escapeHtml(service.provider || '')}${privacy})`;
-    });
+        return `<span class="wm-cookie">${name || badges ? `<span class="wm-cookie-head">${name}${badges}</span>` : ''}`
+            + `<span class="wm-cookie-desc">${escapeHtml(cookie.description || '')}</span></span>`;
+    }).join('');
 
-    return items.length === 0 ? '' : `<br><br>${t.providers}: ${items.join('; ')}.`;
+    return `<span class="wm-cookie-group"><span class="wm-cookie-service"><span class="wm-cookie-title">${escapeHtml(group.title)}</span>`
+        + `${meta ? `<span class="wm-cookie-meta">${meta}</span>` : ''}</span>${rows}</span>`;
 }
 
 /**
@@ -273,9 +273,11 @@ function applyTheme(theme, mode) {
     const style = document.createElement('style');
     const body = window.getComputedStyle(document.body || document.documentElement);
     const fontSize = Math.max(15, Math.min(18, parseFloat(body.fontSize) || 16));
+    const headingElement = document.querySelector('h1, h2, h3');
+    const headingFont = headingElement ? window.getComputedStyle(headingElement).fontFamily : '';
     style.setAttribute('data-wm-consent-theme', '');
     style.textContent = [
-        `:root{--wm-consent-font:${body.fontFamily || 'inherit'};--wm-consent-font-size:${fontSize}px;--im-font-family:var(--wm-consent-font);--wm-consent-blur:${Math.max(0, Math.min(30, Number(config.blurStrength ?? 8)))}px}`,
+        `:root{--wm-consent-font:${body.fontFamily || 'inherit'};--wm-consent-font-size:${fontSize}px;--im-font-family:var(--wm-consent-font);--wm-consent-heading-font:${headingFont || 'inherit'};--wm-consent-blur:${Math.max(0, Math.min(30, Number(config.blurStrength ?? 8)))}px}`,
         `:root{${variables(theme.light || {}, false)}}`,
         `:root.cc--darkmode{${variables(theme.dark || {}, true)}}`,
     ].join('');
@@ -351,6 +353,7 @@ function variables(colors, dark) {
         `--im-overlay-bg:transparent`,
         `--wm-consent-bg:${bg}`,
         `--wm-consent-text:${text}`,
+        `--wm-consent-heading:${colors.heading || text}`,
         `--wm-consent-accent:${accent}`,
         `--wm-consent-on-accent:${onAccent}`,
         `--wm-consent-muted:${muted}`,

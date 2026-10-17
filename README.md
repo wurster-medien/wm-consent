@@ -44,8 +44,8 @@ Lokal mit Path-Repository einbinden wie beim Social Hub (`"type": "path", "url":
 
 ## Cookie-Liste
 
-In den Einstellungen des Banners steht je Kategorie eine Tabelle mit jedem Cookie (Name, Dienst, Dauer, Zweck) und
-die Anbieter mit Datenschutz-Link, ohne Pflegeaufwand:
+In den Einstellungen des Banners steht je Kategorie jeder Dienst mit Anbieter und Datenschutz-Link, darunter jeder
+Eintrag mit Dauer und Zweck in einem Satz, ohne Pflegeaufwand:
 
 - **Dienste** bringen ihre Vorlage mit (`resources/js/services.js`, laut Anbieter, Stand 10/2026) und erscheinen, sobald
   der Filter sie auf der Seite findet oder sie unter `services` stehen.

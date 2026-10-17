@@ -12,7 +12,7 @@ namespace WursterMedien\Consent\Core;
  * mode (auto|light|dark), position (POSITIONS), blur (Hintergrund unscharf und gesperrt bis zur Auswahl, Standard an),
  * blur_strength (Unschärfe in px, 0–30, Standard 8),
  * colors.light|dark.background|text|highlight|highlight_text|muted (Nebenflächen)|muted_text (Nebentext)|border|overlay
- * (Farbe über der Seite, mit Transparenz, z. B. rgba(15, 23, 42, .5)), privacy_url,
+ * (Farbe über der Seite, mit Transparenz, z. B. rgba(15, 23, 42, .5))|heading (Überschriften), privacy_url,
  * imprint_url, texts (Ersetzungen, siehe resources/js/texts.js), services (zusätzlich anzeigen), revision (erhöhen =
  * neu fragen), consent_mode (Standard an), cookie_days, floating_button, google_analytics_id, load_once (Platzhalter
  * zusätzlich mit „Einmal laden“ neben „Immer laden“, Standard aus), cookies (eigene Einträge der Cookie-Liste,
@@ -150,7 +150,7 @@ final class HeadTag
     private static function colors(array $colors): array
     {
         $result = [];
-        $keys = ['background' => 'background', 'text' => 'text', 'highlight' => 'highlight', 'highlight_text' => 'highlightText', 'muted' => 'muted', 'muted_text' => 'mutedText', 'border' => 'border', 'overlay' => 'overlay'];
+        $keys = ['background' => 'background', 'text' => 'text', 'highlight' => 'highlight', 'highlight_text' => 'highlightText', 'muted' => 'muted', 'muted_text' => 'mutedText', 'border' => 'border', 'overlay' => 'overlay', 'heading' => 'heading'];
 
         foreach ($keys as $key => $name) {
             $value = trim((string) ($colors[$key] ?? ''));

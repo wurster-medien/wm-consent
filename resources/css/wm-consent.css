@@ -62,6 +62,86 @@
     padding-bottom: 0.9em;
 }
 
+/* Überschriften in der Überschriftenschrift der Seite (aus h1/h2/h3) und optional eigener Farbe (colors.*.heading). */
+#cc-main .cm__title,
+#cc-main .pm__title {
+    font-family: var(--wm-consent-heading-font, inherit);
+    color: var(--wm-consent-heading, var(--cc-primary-color));
+}
+
+#cc-main .pm__title {
+    font-size: 1.3em;
+}
+
+/* Cookie-Liste je Kategorie: je Dienst ein Block, je Eintrag Name mit Dauer als Marke und der Zweck als Satz. */
+#cc-main .wm-cookies {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75em;
+    margin-top: 1em;
+}
+
+#cc-main .wm-cookie-group {
+    display: block;
+    border: 1px solid var(--cc-cookie-category-block-border);
+    border-radius: var(--cc-btn-border-radius);
+    overflow: hidden;
+}
+
+#cc-main .wm-cookie-service {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25em 0.75em;
+    padding: 0.65em 0.9em;
+    background: var(--cc-cookie-category-block-bg);
+}
+
+#cc-main .wm-cookie-title {
+    font-weight: 600;
+    color: var(--cc-primary-color);
+}
+
+#cc-main .wm-cookie-meta {
+    font-size: 0.9em;
+    color: var(--cc-secondary-color);
+}
+
+#cc-main .wm-cookie {
+    display: block;
+    padding: 0.65em 0.9em;
+    border-top: 1px solid var(--cc-cookie-category-block-border);
+}
+
+#cc-main .wm-cookie-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4em;
+    margin-bottom: 0.2em;
+}
+
+#cc-main .wm-cookie-name {
+    font-weight: 600;
+    color: var(--cc-primary-color);
+    word-break: break-all;
+}
+
+#cc-main .wm-cookie-badge {
+    display: inline-block;
+    padding: 0.1em 0.55em;
+    border-radius: 999px;
+    font-size: 0.8em;
+    line-height: 1.5;
+    background: var(--cc-cookie-category-block-bg);
+    color: var(--cc-secondary-color);
+}
+
+#cc-main .wm-cookie-desc {
+    display: block;
+    color: var(--cc-secondary-color);
+}
+
 /* Geöffnete Kategorie in den Einstellungen markieren: Rahmen und Kopfzeile in der Akzentfarbe. */
 #cc-main .pm__section--toggle.is-expanded {
     border: 1px solid var(--wm-consent-accent);

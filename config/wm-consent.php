@@ -28,7 +28,7 @@ return [
      * Farben je Modus: Hintergrund, Text, Akzent (Knöpfe, Schalter); highlight_text nur, wenn die Schrift auf dem Akzent
      * nicht passt. Grautöne der Seite optional: muted (Nebenflächen, z. B. Knopf „Einstellungen“), muted_text (Nebentext),
      * border (Linien); ohne Angabe aus Hintergrund und Text gemischt. overlay: Farbe über der Seite, solange der Banner
-     * offen ist, mit Transparenz, z. B. 'rgba(51, 65, 85, .7)'.
+     * offen ist, mit Transparenz, z. B. 'rgba(51, 65, 85, .7)'. heading: Farbe der Überschriften (Schrift kommt von h1/h2/h3 der Seite).
      */
     'colors' => [
         'light' => [
