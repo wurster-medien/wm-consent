@@ -82,7 +82,7 @@
     display: flex;
     align-items: center;
     gap: 0.45em;
-    font-size: 1.35em;
+    font-size: 1.3em;
     font-weight: 600;
 }
 
@@ -97,7 +97,7 @@
 }
 
 #cc-main .cm__desc {
-    font-size: 1em;
+    font-size: 0.9em;
     line-height: 1.55;
     color: var(--cc-primary-color);
     max-height: 40vh;
@@ -109,7 +109,7 @@
     align-items: center;
     justify-content: center;
     gap: 0.5em;
-    font-size: 0.95em;
+    font-size: 0.88em;
     font-weight: 500;
     min-height: 2.75em;
 }

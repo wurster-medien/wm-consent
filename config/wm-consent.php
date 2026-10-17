@@ -22,7 +22,11 @@ return [
     /* Hintergrund unscharf und gesperrt, bis Besucher gewählt haben. */
     'blur' => true,
 
-    /* Farben je Modus: Hintergrund, Text, Akzent (Knöpfe, Schalter); highlight_text nur, wenn die Schrift auf dem Akzent nicht passt. */
+    /*
+     * Farben je Modus: Hintergrund, Text, Akzent (Knöpfe, Schalter); highlight_text nur, wenn die Schrift auf dem Akzent
+     * nicht passt. Grautöne der Seite optional: muted (Nebenflächen, z. B. Knopf „Einstellungen“), muted_text (Nebentext),
+     * border (Linien); ohne Angabe aus Hintergrund und Text gemischt.
+     */
     'colors' => [
         'light' => [
             'background' => '#ffffff',

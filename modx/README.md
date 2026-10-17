@@ -32,7 +32,7 @@
 | Schlüssel | Bedeutung |
 | --- | --- |
 | `mode` | `auto` (folgt dem System), `light` oder `dark` |
-| `colors.light` / `colors.dark` | `background`, `text`, `highlight` (Akzent), optional `highlight_text` |
+| `colors.light` / `colors.dark` | `background`, `text`, `highlight` (Akzent), optional `highlight_text`, `muted` (Nebenflächen), `muted_text` (Nebentext), `border` (Linien) |
 | `position` | `top`, `middle` oder `bottom` mit `left`, `center` oder `right`, z. B. `middle center` |
 | `blur` | Hintergrund unscharf und gesperrt bis zur Auswahl (Standard `true`) |
 | `privacy_url`, `imprint_url` | Links im Banner |

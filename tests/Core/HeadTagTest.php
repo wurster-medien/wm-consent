@@ -33,6 +33,10 @@ class HeadTagTest extends TestCase
         $this->assertSame('auto', $config['mode']);
         $this->assertSame(['background' => '#fff', 'highlight' => 'rgb(20, 184, 166)'], $config['theme']['light']);
         $this->assertSame(['highlight' => '#2dd4bf'], $config['theme']['dark']);
+        $this->assertSame(
+            ['background' => '#1e293b', 'muted' => '#334155', 'mutedText' => '#94a3b8', 'border' => '#334155'],
+            HeadTag::config(['colors' => ['dark' => ['background' => '#1e293b', 'muted' => '#334155', 'muted_text' => '#94a3b8', 'border' => '#334155']]])['theme']['dark'],
+        );
         $this->assertNull($config['privacyUrl']);
         $this->assertSame('/impressum', $config['imprintUrl']);
         $this->assertSame(['youtube'], $config['services']);

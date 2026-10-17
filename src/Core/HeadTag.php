@@ -10,7 +10,7 @@ namespace WursterMedien\Consent\Core;
  *
  * Einstellungen (snake_case, gleich für Statamic-Config und MODX-Chunk), alles optional:
  * mode (auto|light|dark), position (POSITIONS), blur (Hintergrund unscharf und gesperrt bis zur Auswahl, Standard an),
- * colors.light|dark.background|text|highlight|highlight_text, privacy_url,
+ * colors.light|dark.background|text|highlight|highlight_text|muted (Nebenflächen)|muted_text (Nebentext)|border, privacy_url,
  * imprint_url, texts (Ersetzungen, siehe resources/js/texts.js), services (zusätzlich anzeigen), revision (erhöhen =
  * neu fragen), consent_mode (Standard an), cookie_days, floating_button, google_analytics_id, load_once (Platzhalter
  * zusätzlich mit „Einmal laden“ neben „Immer laden“, Standard aus), cookies (eigene Einträge der Cookie-Liste,
@@ -147,7 +147,7 @@ final class HeadTag
     private static function colors(array $colors): array
     {
         $result = [];
-        $keys = ['background' => 'background', 'text' => 'text', 'highlight' => 'highlight', 'highlight_text' => 'highlightText'];
+        $keys = ['background' => 'background', 'text' => 'text', 'highlight' => 'highlight', 'highlight_text' => 'highlightText', 'muted' => 'muted', 'muted_text' => 'mutedText', 'border' => 'border'];
 
         foreach ($keys as $key => $name) {
             $value = trim((string) ($colors[$key] ?? ''));

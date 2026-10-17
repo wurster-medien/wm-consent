@@ -272,7 +272,7 @@ function alwaysFirst() {
 function applyTheme(theme, mode) {
     const style = document.createElement('style');
     const body = window.getComputedStyle(document.body || document.documentElement);
-    const fontSize = Math.max(16, Math.min(20, parseFloat(body.fontSize) || 16));
+    const fontSize = Math.max(15, Math.min(18, parseFloat(body.fontSize) || 16));
     style.setAttribute('data-wm-consent-theme', '');
     style.textContent = [
         `:root{--wm-consent-font:${body.fontFamily || 'inherit'};--wm-consent-font-size:${fontSize}px;--im-font-family:var(--wm-consent-font)}`,
@@ -297,58 +297,63 @@ function variables(colors, dark) {
     const accent = colors.highlight || '#14b8a6';
     const onAccent = colors.highlightText || readableOn(accent);
     const mix = (amount, base = bg, other = text) => `color-mix(in srgb, ${other} ${amount}%, ${base})`;
+    /* Grautöne der Seite, wenn angegeben (muted: Nebenflächen, mutedText: Nebentext, border: Linien), sonst gemischt. */
+    const muted = colors.muted || mix(8);
+    const mutedHover = colors.muted ? `color-mix(in srgb, ${text} 8%, ${colors.muted})` : mix(15);
+    const mutedText = colors.mutedText || mix(75);
+    const border = colors.border || mix(12);
 
     return [
         `--cc-bg:${bg}`,
         `--cc-primary-color:${text}`,
-        `--cc-secondary-color:${mix(75)}`,
+        `--cc-secondary-color:${mutedText}`,
         `--cc-btn-primary-bg:${accent}`,
         `--cc-btn-primary-color:${onAccent}`,
         `--cc-btn-primary-border-color:${accent}`,
         `--cc-btn-primary-hover-bg:color-mix(in srgb, ${accent} 85%, ${text})`,
         `--cc-btn-primary-hover-color:${onAccent}`,
         `--cc-btn-primary-hover-border-color:color-mix(in srgb, ${accent} 85%, ${text})`,
-        `--cc-btn-secondary-bg:${mix(8)}`,
+        `--cc-btn-secondary-bg:${muted}`,
         `--cc-btn-secondary-color:${text}`,
-        `--cc-btn-secondary-border-color:${mix(8)}`,
-        `--cc-btn-secondary-hover-bg:${mix(15)}`,
+        `--cc-btn-secondary-border-color:${muted}`,
+        `--cc-btn-secondary-hover-bg:${mutedHover}`,
         `--cc-btn-secondary-hover-color:${text}`,
-        `--cc-btn-secondary-hover-border-color:${mix(15)}`,
-        `--cc-separator-border-color:${mix(12)}`,
+        `--cc-btn-secondary-hover-border-color:${mutedHover}`,
+        `--cc-separator-border-color:${border}`,
         `--cc-toggle-on-bg:${accent}`,
-        `--cc-toggle-off-bg:${mix(35)}`,
+        `--cc-toggle-off-bg:${colors.mutedText || mix(35)}`,
         `--cc-toggle-on-knob-bg:${bg}`,
         `--cc-toggle-off-knob-bg:${bg}`,
-        `--cc-toggle-readonly-bg:${mix(20)}`,
+        `--cc-toggle-readonly-bg:${colors.muted ? mutedHover : mix(20)}`,
         `--cc-toggle-readonly-knob-bg:${bg}`,
-        `--cc-section-category-border:${mix(10)}`,
-        `--cc-cookie-category-block-bg:${mix(4)}`,
-        `--cc-cookie-category-block-border:${mix(10)}`,
-        `--cc-cookie-category-block-hover-bg:${mix(8)}`,
-        `--cc-cookie-category-block-hover-border:${mix(15)}`,
-        `--cc-cookie-category-expanded-block-bg:${mix(2)}`,
-        `--cc-cookie-category-expanded-block-hover-bg:${mix(6)}`,
-        `--cc-footer-bg:${mix(4)}`,
-        `--cc-footer-color:${mix(75)}`,
-        `--cc-footer-border-color:${mix(10)}`,
+        `--cc-section-category-border:${border}`,
+        `--cc-cookie-category-block-bg:${muted}`,
+        `--cc-cookie-category-block-border:${border}`,
+        `--cc-cookie-category-block-hover-bg:${mutedHover}`,
+        `--cc-cookie-category-block-hover-border:${border}`,
+        `--cc-cookie-category-expanded-block-bg:${bg}`,
+        `--cc-cookie-category-expanded-block-hover-bg:${muted}`,
+        `--cc-footer-bg:${bg}`,
+        `--cc-footer-color:${mutedText}`,
+        `--cc-footer-border-color:${border}`,
         `--cc-link-color:${text}`,
         `--cc-overlay-bg:${dark ? 'rgba(0,0,0,.45)' : 'rgba(0,0,0,.3)'}`,
-        `--im-bg:${mix(6)}`,
+        `--im-bg:${muted}`,
         `--im-color:${text}`,
         `--im-link-color:${text}`,
-        `--im-link-hover-color:${mix(75)}`,
+        `--im-link-hover-color:${mutedText}`,
         `--im-btn-bg:${accent}`,
         `--im-btn-color:${onAccent}`,
         `--im-btn-hover-bg:color-mix(in srgb, ${accent} 85%, ${text})`,
-        `--im-btn-s-bg:${mix(15)}`,
+        `--im-btn-s-bg:${mutedHover}`,
         `--im-btn-s-color:${text}`,
-        `--im-btn-s-hover-bg:${mix(22)}`,
+        `--im-btn-s-hover-bg:${border}`,
         `--im-overlay-bg:transparent`,
         `--wm-consent-bg:${bg}`,
         `--wm-consent-text:${text}`,
         `--wm-consent-accent:${accent}`,
         `--wm-consent-on-accent:${onAccent}`,
-        `--wm-consent-muted:${mix(8)}`,
+        `--wm-consent-muted:${muted}`,
     ].join(';');
 }
 
