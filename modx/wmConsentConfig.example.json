@@ -1,0 +1,17 @@
+{
+    "mode": "auto",
+    "position": "bottom right",
+    "colors": {
+        "light": { "background": "#ffffff", "text": "#2c2f31", "highlight": "#14b8a6" },
+        "dark": { "background": "#161a1c", "text": "#ebf3f6", "highlight": "#2dd4bf" }
+    },
+    "privacy_url": "/datenschutz",
+    "imprint_url": "/impressum",
+    "google_analytics_id": "",
+    "services": [],
+    "texts": {},
+    "consent_mode": true,
+    "revision": 0,
+    "cookie_days": 182,
+    "floating_button": false
+}

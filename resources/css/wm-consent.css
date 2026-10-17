@@ -1,0 +1,55 @@
+/* Ergänzungen zu CookieConsent und iframemanager (Farben setzt wm-consent.js je Seite und Modus). */
+
+:root {
+    --cc-btn-border-radius: 0.5rem;
+    --cc-modal-border-radius: 0.75rem;
+}
+
+#cc-main .cm__desc a,
+#cc-main .pm__section-desc a,
+#cc-main .cm__footer a {
+    text-decoration: underline;
+}
+
+div[data-service] {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    min-height: 12rem;
+}
+
+div[data-service] .c-n-t {
+    color: var(--im-color);
+}
+
+.wm-consent-reopen {
+    position: fixed;
+    left: 1rem;
+    bottom: 1rem;
+    z-index: 2147483000;
+    width: 2.75rem;
+    height: 2.75rem;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 999px;
+    background: var(--wm-consent-bg, #fff);
+    color: var(--wm-consent-text, #2c2f31);
+    box-shadow: 0 0.25rem 1rem rgb(0 0 0 / 0.18);
+    cursor: pointer;
+}
+
+.wm-consent-reopen:hover,
+.wm-consent-reopen:focus-visible {
+    background: var(--wm-consent-muted, #f1f3f4);
+}
+
+.wm-consent-reopen svg {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+@media print {
+    .wm-consent-reopen {
+        display: none;
+    }
+}

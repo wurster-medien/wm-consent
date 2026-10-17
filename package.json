@@ -1,0 +1,15 @@
+{
+  "name": "wm-consent",
+  "private": true,
+  "description": "Cookie-Banner von Wurster Medien (Kern für Statamic und MODX)",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@orestbida/iframemanager": "1.3.0",
+    "vanilla-cookieconsent": "3.1.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.0"
+  }
+}

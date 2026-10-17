@@ -1,0 +1,7 @@
+/node_modules
+/vendor
+/build
+.phpunit.result.cache
+.phpunit.cache
+composer.lock
+/tests/__fixtures__
