@@ -151,7 +151,6 @@
     color: var(--wm-consent-accent);
     background: color-mix(in srgb, #000 30%, var(--cc-bg));
     border-color: transparent;
-    border-bottom: 2px solid var(--wm-consent-accent);
 }
 
 #cc-main .pm__section--toggle.is-expanded .pm__section-title-wrapper + .pm__section-desc-wrapper,
