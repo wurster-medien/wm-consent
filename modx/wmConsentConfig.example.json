@@ -13,5 +13,6 @@
     "consent_mode": true,
     "revision": 0,
     "cookie_days": 182,
-    "floating_button": false
+    "floating_button": false,
+    "load_once": false
 }

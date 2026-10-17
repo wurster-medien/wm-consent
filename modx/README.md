@@ -18,7 +18,8 @@
 ## Was dann passiert
 
 - Das Plugin blockt bekannte Tracker (Google Analytics, Tag Manager, Meta Pixel, LinkedIn, Hotjar …) und macht
-  aus YouTube-, Vimeo-, Maps-, Instagram- und Facebook-Einbettungen Platzhalter mit „Einmal laden“/„Immer laden“.
+  aus YouTube-, Vimeo-, Maps-, Instagram- und Facebook-Einbettungen Platzhalter mit „Immer laden“ (auf Wunsch
+  zusätzlich „Einmal laden“, `load_once`).
   Im Inhalt muss niemand etwas markieren.
 - Eigene Skripte, die der Filter nicht kennt, von Hand blockieren:
   `<script type="text/plain" data-category="analytics">…</script>` (Kategorien `analytics`, `marketing`, `media`).
@@ -40,4 +41,5 @@
 | `consent_mode` | Google Consent Mode v2 (Standard `true`) |
 | `revision` | erhöhen, wenn alle neu gefragt werden sollen |
 | `floating_button` | runder Knopf unten links zum Wieder-Öffnen |
+| `load_once` | Platzhalter zusätzlich mit „Einmal laden“ (sonst nur „Immer laden“ in der Akzentfarbe) |
 | `enabled`, `filter` | `false` schaltet den Banner bzw. nur den Filter ab |

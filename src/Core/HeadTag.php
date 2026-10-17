@@ -11,7 +11,8 @@ namespace WursterMedien\Consent\Core;
  * Einstellungen (snake_case, gleich für Statamic-Config und MODX-Chunk), alles optional:
  * mode (auto|light|dark), position, colors.light|dark.background|text|highlight|highlight_text, privacy_url,
  * imprint_url, texts (Ersetzungen, siehe resources/js/texts.js), services (zusätzlich anzeigen), revision (erhöhen =
- * neu fragen), consent_mode (Standard an), cookie_days, floating_button, google_analytics_id.
+ * neu fragen), consent_mode (Standard an), cookie_days, floating_button, google_analytics_id, load_once (Platzhalter
+ * zusätzlich mit „Einmal laden“ neben „Immer laden“, Standard aus).
  *
  * PHP 7.4-tauglich.
  */
@@ -78,6 +79,7 @@ final class HeadTag
             'consentMode' => (bool) ($settings['consent_mode'] ?? true),
             'cookieDays' => max(1, min(365, (int) ($settings['cookie_days'] ?? 182))),
             'floatingButton' => (bool) ($settings['floating_button'] ?? false),
+            'loadOnce' => (bool) ($settings['load_once'] ?? false),
         ];
     }
 

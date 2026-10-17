@@ -21,6 +21,38 @@ div[data-service] .c-n-t {
     color: var(--im-color);
 }
 
+/* „Immer laden“ zuerst und in der Akzentfarbe, „Einmal laden“ (nur mit load_once) danach als Nebenknopf. */
+div[data-service] div.c-n-a {
+    flex-wrap: wrap;
+    gap: 0.8em;
+}
+
+div[data-service] div.c-n-a button + button {
+    margin-left: 0;
+}
+
+div[data-service] div.c-n-a .c-la-b {
+    background: var(--im-btn-bg);
+    color: var(--im-btn-color);
+}
+
+div[data-service] div.c-n-a .c-la-b:hover {
+    background: var(--im-btn-hover-bg);
+}
+
+div[data-service] div.c-n-a .c-l-b:not(:only-child) {
+    background: var(--im-btn-s-bg);
+    color: var(--im-btn-s-color);
+}
+
+div[data-service] div.c-n-a .c-l-b:not(:only-child):hover {
+    background: var(--im-btn-s-hover-bg);
+}
+
+div[data-service] div.c-n-a .c-l-b:not(:only-child)::before {
+    display: none;
+}
+
 .wm-consent-reopen {
     position: fixed;
     left: 1rem;

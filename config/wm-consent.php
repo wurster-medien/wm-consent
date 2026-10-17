@@ -57,4 +57,7 @@ return [
     /* Runder Knopf unten links, um die Auswahl wieder zu öffnen (sonst Link mit {{ wm_consent:link }} im Footer). */
     'floating_button' => false,
 
+    /* Platzhalter für Videos und Karten: „Immer laden“ (Akzentfarbe) und auf Wunsch zusätzlich „Einmal laden“. */
+    'load_once' => false,
+
 ];

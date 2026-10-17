@@ -32,7 +32,7 @@ iframes.run({
         languages: {
             de: {
                 notice: t.placeholder(SERVICES[key].label),
-                loadBtn: t.loadOnce,
+                loadBtn: config.loadOnce ? t.loadOnce : '',
                 loadAllBtn: t.loadAlways,
             },
         },
@@ -43,6 +43,8 @@ iframes.run({
         }
     },
 });
+
+alwaysFirst();
 
 CookieConsent.run({
     revision: Number(config.revision || 0),
@@ -154,6 +156,19 @@ function syncAll() {
             iframes.rejectService(key);
         }
     }
+
+    alwaysFirst();
+}
+
+/** In den Platzhaltern „Immer laden“ zuerst (auch für die Tastatur), „Einmal laden“ (load_once) danach. */
+function alwaysFirst() {
+    document.querySelectorAll('div[data-service] .c-n-a').forEach((box) => {
+        const always = box.querySelector('.c-la-b');
+
+        if (always && box.firstElementChild !== always) {
+            box.prepend(always);
+        }
+    });
 }
 
 /**

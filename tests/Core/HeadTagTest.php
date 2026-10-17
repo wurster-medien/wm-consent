@@ -37,6 +37,8 @@ class HeadTagTest extends TestCase
         $this->assertSame('/impressum', $config['imprintUrl']);
         $this->assertSame(['youtube'], $config['services']);
         $this->assertSame(365, $config['cookieDays']);
+        $this->assertFalse($config['loadOnce']);
+        $this->assertTrue(HeadTag::config(['load_once' => true])['loadOnce']);
     }
 
     public function test_texts_cannot_close_the_config_script(): void
