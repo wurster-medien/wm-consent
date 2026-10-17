@@ -7,7 +7,7 @@ export function texts(overrides, config) {
     const footer = [link(config.privacyUrl, 'Datenschutz'), link(config.imprintUrl, 'Impressum')].filter(Boolean).join('\n');
 
     const defaults = {
-        title: 'Cookies und externe Inhalte',
+        title: 'Ihre Privatsphäre',
         description: 'Wir nutzen Cookies und Dienste anderer Anbieter, um die Website zu verbessern und Inhalte wie Videos oder Karten zu zeigen. Sie entscheiden, was Sie zulassen; Ihre Auswahl können Sie jederzeit unter „Cookie-Einstellungen“ ändern.',
         acceptAll: 'Alle akzeptieren',
         acceptNecessary: 'Nur notwendige',

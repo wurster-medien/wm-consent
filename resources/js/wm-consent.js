@@ -54,7 +54,7 @@ CookieConsent.run({
     cookie: { name: 'wm_consent', expiresAfterDays: Number(config.cookieDays || 182) },
     disablePageInteraction: config.blur !== false,
     guiOptions: {
-        consentModal: { layout: 'box', position: config.position || 'bottom right', equalWeightButtons: true, flipButtons: false },
+        consentModal: { layout: 'box wide', position: config.position || 'bottom right', equalWeightButtons: true, flipButtons: false },
         preferencesModal: { layout: 'box', equalWeightButtons: true, flipButtons: false },
     },
     categories: categories(),
@@ -271,8 +271,11 @@ function alwaysFirst() {
  */
 function applyTheme(theme, mode) {
     const style = document.createElement('style');
+    const body = window.getComputedStyle(document.body || document.documentElement);
+    const fontSize = Math.max(16, Math.min(20, parseFloat(body.fontSize) || 16));
     style.setAttribute('data-wm-consent-theme', '');
     style.textContent = [
+        `:root{--wm-consent-font:${body.fontFamily || 'inherit'};--wm-consent-font-size:${fontSize}px;--im-font-family:var(--wm-consent-font)}`,
         `:root{${variables(theme.light || {}, false)}}`,
         `:root.cc--darkmode{${variables(theme.dark || {}, true)}}`,
     ].join('');
