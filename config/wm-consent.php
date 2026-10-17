@@ -16,8 +16,11 @@ return [
     /* auto (folgt dem System), light oder dark. */
     'mode' => 'auto',
 
-    /* bottom right, bottom left, bottom center oder middle center. */
+    /* top, middle oder bottom mit left, center oder right, z. B. middle center (mittig). */
     'position' => 'bottom right',
+
+    /* Hintergrund unscharf und gesperrt, bis Besucher gewählt haben. */
+    'blur' => true,
 
     /* Farben je Modus: Hintergrund, Text, Akzent (Knöpfe, Schalter); highlight_text nur, wenn die Schrift auf dem Akzent nicht passt. */
     'colors' => [

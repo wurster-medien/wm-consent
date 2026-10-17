@@ -38,6 +38,10 @@ class HeadTagTest extends TestCase
         $this->assertSame(['youtube'], $config['services']);
         $this->assertSame(365, $config['cookieDays']);
         $this->assertFalse($config['loadOnce']);
+        $this->assertTrue($config['blur']);
+        $this->assertSame('bottom right', $config['position']);
+        $this->assertSame('middle center', HeadTag::config(['position' => 'middle center'])['position']);
+        $this->assertFalse(HeadTag::config(['blur' => false])['blur']);
         $this->assertTrue(HeadTag::config(['load_once' => true])['loadOnce']);
     }
 

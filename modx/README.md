@@ -33,7 +33,8 @@
 | --- | --- |
 | `mode` | `auto` (folgt dem System), `light` oder `dark` |
 | `colors.light` / `colors.dark` | `background`, `text`, `highlight` (Akzent), optional `highlight_text` |
-| `position` | `bottom right`, `bottom left`, `bottom center`, `middle center` |
+| `position` | `top`, `middle` oder `bottom` mit `left`, `center` oder `right`, z. B. `middle center` |
+| `blur` | Hintergrund unscharf und gesperrt bis zur Auswahl (Standard `true`) |
 | `privacy_url`, `imprint_url` | Links im Banner |
 | `texts` | einzelne Texte ersetzen, z. B. `{"title": "Ihre Privatsphäre"}` |
 | `services` | Dienste immer zeigen, auch wenn der Filter sie nicht findet |

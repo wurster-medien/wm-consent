@@ -1,6 +1,7 @@
 {
     "mode": "auto",
     "position": "bottom right",
+    "blur": true,
     "colors": {
         "light": { "background": "#ffffff", "text": "#2c2f31", "highlight": "#14b8a6" },
         "dark": { "background": "#161a1c", "text": "#ebf3f6", "highlight": "#2dd4bf" }

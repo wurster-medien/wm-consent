@@ -9,7 +9,8 @@ namespace WursterMedien\Consent\Core;
  * Skript des Banners.
  *
  * Einstellungen (snake_case, gleich für Statamic-Config und MODX-Chunk), alles optional:
- * mode (auto|light|dark), position, colors.light|dark.background|text|highlight|highlight_text, privacy_url,
+ * mode (auto|light|dark), position (POSITIONS), blur (Hintergrund unscharf und gesperrt bis zur Auswahl, Standard an),
+ * colors.light|dark.background|text|highlight|highlight_text, privacy_url,
  * imprint_url, texts (Ersetzungen, siehe resources/js/texts.js), services (zusätzlich anzeigen), revision (erhöhen =
  * neu fragen), consent_mode (Standard an), cookie_days, floating_button, google_analytics_id, load_once (Platzhalter
  * zusätzlich mit „Einmal laden“ neben „Immer laden“, Standard aus), cookies (eigene Einträge der Cookie-Liste,
@@ -20,6 +21,9 @@ namespace WursterMedien\Consent\Core;
 final class HeadTag
 {
     public const VERSION = '1.0.0';
+
+    /** Wo der Banner steht (`position`), wie bei CookieConsent: oben, Mitte, unten jeweils links, mittig, rechts. */
+    public const POSITIONS = ['top left', 'top center', 'top right', 'middle left', 'middle center', 'middle right', 'bottom left', 'bottom center', 'bottom right'];
 
     /**
      * @param  array<string, mixed>  $settings
@@ -70,7 +74,8 @@ final class HeadTag
         return [
             'revision' => (int) ($settings['revision'] ?? 0),
             'mode' => $mode,
-            'position' => in_array($settings['position'] ?? '', ['bottom right', 'bottom left', 'bottom center', 'middle center'], true) ? $settings['position'] : 'bottom right',
+            'position' => in_array($settings['position'] ?? '', self::POSITIONS, true) ? $settings['position'] : 'bottom right',
+            'blur' => (bool) ($settings['blur'] ?? true),
             'theme' => [
                 'light' => self::colors((array) ($settings['colors']['light'] ?? [])),
                 'dark' => self::colors((array) ($settings['colors']['dark'] ?? [])),

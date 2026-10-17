@@ -5,6 +5,13 @@
     --cc-modal-border-radius: 0.75rem;
 }
 
+/* Hintergrund unscharf, solange der Banner oder die Einstellungen offen sind (blur, Standard an). */
+.disable--interaction #cc-main .cm-wrapper:before,
+#cc-main .pm-overlay {
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+
 #cc-main .cm__desc a,
 #cc-main .pm__section-desc a,
 #cc-main .cm__footer a {

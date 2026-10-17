@@ -52,6 +52,7 @@ alwaysFirst();
 CookieConsent.run({
     revision: Number(config.revision || 0),
     cookie: { name: 'wm_consent', expiresAfterDays: Number(config.cookieDays || 182) },
+    disablePageInteraction: config.blur !== false,
     guiOptions: {
         consentModal: { layout: 'box', position: config.position || 'bottom right', equalWeightButtons: true, flipButtons: false },
         preferencesModal: { layout: 'box', equalWeightButtons: true, flipButtons: false },
@@ -328,7 +329,7 @@ function variables(colors, dark) {
         `--cc-footer-color:${mix(75)}`,
         `--cc-footer-border-color:${mix(10)}`,
         `--cc-link-color:${text}`,
-        `--cc-overlay-bg:rgba(0,0,0,.6)`,
+        `--cc-overlay-bg:${dark ? 'rgba(0,0,0,.45)' : 'rgba(0,0,0,.3)'}`,
         `--im-bg:${mix(6)}`,
         `--im-color:${text}`,
         `--im-link-color:${text}`,
