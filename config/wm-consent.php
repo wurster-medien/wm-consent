@@ -19,13 +19,16 @@ return [
     /* top, middle oder bottom mit left, center oder right, z. B. middle center (mittig). */
     'position' => 'bottom right',
 
-    /* Hintergrund unscharf und gesperrt, bis Besucher gewählt haben. */
+    /* Hintergrund unscharf und gesperrt, bis Besucher gewählt haben; Stärke der Unschärfe in px (0–30). Farbe darüber: colors.*.overlay. */
     'blur' => true,
+
+    'blur_strength' => 8,
 
     /*
      * Farben je Modus: Hintergrund, Text, Akzent (Knöpfe, Schalter); highlight_text nur, wenn die Schrift auf dem Akzent
      * nicht passt. Grautöne der Seite optional: muted (Nebenflächen, z. B. Knopf „Einstellungen“), muted_text (Nebentext),
-     * border (Linien); ohne Angabe aus Hintergrund und Text gemischt.
+     * border (Linien); ohne Angabe aus Hintergrund und Text gemischt. overlay: Farbe über der Seite, solange der Banner
+     * offen ist, mit Transparenz, z. B. 'rgba(51, 65, 85, .7)'.
      */
     'colors' => [
         'light' => [

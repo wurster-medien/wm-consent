@@ -32,9 +32,10 @@
 | Schlüssel | Bedeutung |
 | --- | --- |
 | `mode` | `auto` (folgt dem System), `light` oder `dark` |
-| `colors.light` / `colors.dark` | `background`, `text`, `highlight` (Akzent), optional `highlight_text`, `muted` (Nebenflächen), `muted_text` (Nebentext), `border` (Linien) |
+| `colors.light` / `colors.dark` | `background`, `text`, `highlight` (Akzent), optional `highlight_text`, `muted` (Nebenflächen), `muted_text` (Nebentext), `border` (Linien), `overlay` (Farbe über der Seite, z. B. `rgba(51, 65, 85, .7)`) |
 | `position` | `top`, `middle` oder `bottom` mit `left`, `center` oder `right`, z. B. `middle center` |
 | `blur` | Hintergrund unscharf und gesperrt bis zur Auswahl (Standard `true`) |
+| `blur_strength` | Stärke der Unschärfe in px, 0–30 (Standard 8) |
 | `privacy_url`, `imprint_url` | Links im Banner |
 | `texts` | einzelne Texte ersetzen, z. B. `{"title": "Ihre Privatsphäre"}` |
 | `services` | Dienste immer zeigen, auch wenn der Filter sie nicht findet |

@@ -275,7 +275,7 @@ function applyTheme(theme, mode) {
     const fontSize = Math.max(15, Math.min(18, parseFloat(body.fontSize) || 16));
     style.setAttribute('data-wm-consent-theme', '');
     style.textContent = [
-        `:root{--wm-consent-font:${body.fontFamily || 'inherit'};--wm-consent-font-size:${fontSize}px;--im-font-family:var(--wm-consent-font)}`,
+        `:root{--wm-consent-font:${body.fontFamily || 'inherit'};--wm-consent-font-size:${fontSize}px;--im-font-family:var(--wm-consent-font);--wm-consent-blur:${Math.max(0, Math.min(30, Number(config.blurStrength ?? 8)))}px}`,
         `:root{${variables(theme.light || {}, false)}}`,
         `:root.cc--darkmode{${variables(theme.dark || {}, true)}}`,
     ].join('');
@@ -337,7 +337,7 @@ function variables(colors, dark) {
         `--cc-footer-color:${mutedText}`,
         `--cc-footer-border-color:${border}`,
         `--cc-link-color:${text}`,
-        `--cc-overlay-bg:${dark ? 'rgba(0,0,0,.45)' : 'rgba(0,0,0,.3)'}`,
+        `--cc-overlay-bg:${colors.overlay || (dark ? 'rgba(0,0,0,.45)' : 'rgba(0,0,0,.3)')}`,
         `--im-bg:${muted}`,
         `--im-color:${text}`,
         `--im-link-color:${text}`,

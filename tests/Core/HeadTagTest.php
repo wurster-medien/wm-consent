@@ -46,6 +46,9 @@ class HeadTagTest extends TestCase
         $this->assertSame('bottom right', $config['position']);
         $this->assertSame('middle center', HeadTag::config(['position' => 'middle center'])['position']);
         $this->assertFalse(HeadTag::config(['blur' => false])['blur']);
+        $this->assertSame(8, $config['blurStrength']);
+        $this->assertSame(30, HeadTag::config(['blur_strength' => 99])['blurStrength']);
+        $this->assertSame(['overlay' => 'rgba(51, 65, 85, .7)'], HeadTag::config(['colors' => ['light' => ['overlay' => 'rgba(51, 65, 85, .7)']]])['theme']['light']);
         $this->assertTrue(HeadTag::config(['load_once' => true])['loadOnce']);
     }
 

@@ -62,6 +62,11 @@
     padding-bottom: 0.9em;
 }
 
+/* Links im Footer (Datenschutz, Impressum) mittig. */
+#cc-main .cm__link-group {
+    justify-content: center;
+}
+
 @media screen and (max-width: 640px) {
     #cc-main .cm--box .cm__title,
     #cc-main .cm--box .cm__desc,
@@ -151,8 +156,8 @@
 /* Hintergrund unscharf, solange der Banner oder die Einstellungen offen sind (blur, Standard an). */
 .disable--interaction #cc-main .cm-wrapper:before,
 #cc-main .pm-overlay {
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(var(--wm-consent-blur, 8px));
+    backdrop-filter: blur(var(--wm-consent-blur, 8px));
 }
 
 #cc-main .cm__desc a,

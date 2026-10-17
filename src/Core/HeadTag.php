@@ -10,7 +10,9 @@ namespace WursterMedien\Consent\Core;
  *
  * Einstellungen (snake_case, gleich für Statamic-Config und MODX-Chunk), alles optional:
  * mode (auto|light|dark), position (POSITIONS), blur (Hintergrund unscharf und gesperrt bis zur Auswahl, Standard an),
- * colors.light|dark.background|text|highlight|highlight_text|muted (Nebenflächen)|muted_text (Nebentext)|border, privacy_url,
+ * blur_strength (Unschärfe in px, 0–30, Standard 8),
+ * colors.light|dark.background|text|highlight|highlight_text|muted (Nebenflächen)|muted_text (Nebentext)|border|overlay
+ * (Farbe über der Seite, mit Transparenz, z. B. rgba(15, 23, 42, .5)), privacy_url,
  * imprint_url, texts (Ersetzungen, siehe resources/js/texts.js), services (zusätzlich anzeigen), revision (erhöhen =
  * neu fragen), consent_mode (Standard an), cookie_days, floating_button, google_analytics_id, load_once (Platzhalter
  * zusätzlich mit „Einmal laden“ neben „Immer laden“, Standard aus), cookies (eigene Einträge der Cookie-Liste,
@@ -76,6 +78,7 @@ final class HeadTag
             'mode' => $mode,
             'position' => in_array($settings['position'] ?? '', self::POSITIONS, true) ? $settings['position'] : 'bottom right',
             'blur' => (bool) ($settings['blur'] ?? true),
+            'blurStrength' => max(0, min(30, (int) ($settings['blur_strength'] ?? 8))),
             'theme' => [
                 'light' => self::colors((array) ($settings['colors']['light'] ?? [])),
                 'dark' => self::colors((array) ($settings['colors']['dark'] ?? [])),
@@ -147,7 +150,7 @@ final class HeadTag
     private static function colors(array $colors): array
     {
         $result = [];
-        $keys = ['background' => 'background', 'text' => 'text', 'highlight' => 'highlight', 'highlight_text' => 'highlightText', 'muted' => 'muted', 'muted_text' => 'mutedText', 'border' => 'border'];
+        $keys = ['background' => 'background', 'text' => 'text', 'highlight' => 'highlight', 'highlight_text' => 'highlightText', 'muted' => 'muted', 'muted_text' => 'mutedText', 'border' => 'border', 'overlay' => 'overlay'];
 
         foreach ($keys as $key => $name) {
             $value = trim((string) ($colors[$key] ?? ''));
