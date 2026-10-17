@@ -8,7 +8,7 @@
  */
 import * as CookieConsent from 'vanilla-cookieconsent';
 import '@orestbida/iframemanager';
-import { SERVICES, CATEGORIES } from './services.js';
+import { SERVICES, CATEGORIES, ownCookies } from './services.js';
 import { texts } from './texts.js';
 
 const configElement = document.getElementById('wm-consent-config');
@@ -17,6 +17,9 @@ const config = configElement ? JSON.parse(configElement.textContent || '{}') : {
 /** Dienste dieser Seite: eingetragen plus vom Ausgabefilter gefunden. */
 const serviceKeys = [...new Set([...(config.services || []), ...(config.detected || [])])].filter((key) => SERVICES[key]);
 const t = texts(config.texts || {}, config);
+
+/** Eigene Einträge der Seite (Einstellung `cookies`, beim Statamic-Addon samt Session- und XSRF-Cookie). */
+const siteCookies = Array.isArray(config.cookies) ? config.cookies : [];
 
 applyTheme(config.theme || {}, config.mode || 'auto');
 
@@ -81,7 +84,12 @@ if (config.floatingButton) {
 window.wmConsent = {
     show: () => CookieConsent.showPreferences(),
     accepted: (category) => CookieConsent.acceptedCategory(category),
+    inventory,
 };
+
+if (window.location.hash.includes('wm-consent-inventar')) {
+    window.setTimeout(inventory, 2000);
+}
 
 /** Kategorien mit Diensten dieser Seite; „Notwendig“ immer, andere nur mit Diensten. */
 function categories() {
@@ -90,12 +98,16 @@ function categories() {
     for (const category of Object.keys(CATEGORIES)) {
         const keys = serviceKeys.filter((key) => SERVICES[key].category === category);
 
-        if (keys.length === 0) {
+        if (category === 'necessary' || (keys.length === 0 && !siteCookies.some((cookie) => cookie.category === category))) {
             continue;
         }
 
         result[category] = {
-            autoClear: { cookies: keys.flatMap((key) => (SERVICES[key].cookies || []).map((name) => ({ name: toPattern(name) }))) },
+            autoClear: {
+                cookies: keys.flatMap((key) => (SERVICES[key].cookies || []).map((cookie) => cookie.name))
+                    .filter((name) => /^[A-Za-z0-9_*-]+$/.test(name))
+                    .map((name) => ({ name: toPattern(name) })),
+            },
             services: Object.fromEntries(keys.map((key) => [key, { label: SERVICES[key].label }])),
         };
     }
@@ -105,12 +117,23 @@ function categories() {
 
 function translation() {
     const sections = [{ title: t.preferencesIntroTitle, description: t.preferencesIntro }];
-    sections.push({ title: CATEGORIES.necessary.title, description: CATEGORIES.necessary.description, linkedCategory: 'necessary' });
 
     for (const [category, info] of Object.entries(CATEGORIES)) {
-        if (category !== 'necessary' && serviceKeys.some((key) => SERVICES[key].category === category)) {
-            sections.push({ title: info.title, description: info.description, linkedCategory: category });
+        const rows = cookieRows(category);
+
+        if (category !== 'necessary' && !serviceKeys.some((key) => SERVICES[key].category === category) && rows.length === 0) {
+            continue;
         }
+
+        sections.push({
+            title: info.title,
+            description: info.description + providerLinks(category),
+            linkedCategory: category,
+            cookieTable: rows.length === 0 ? undefined : {
+                headers: { name: 'Name', service: 'Dienst', duration: 'Dauer', description: 'Zweck' },
+                body: rows,
+            },
+        });
     }
 
     sections.push({ title: t.moreTitle, description: t.more });
@@ -134,6 +157,76 @@ function translation() {
             sections,
         },
     };
+}
+
+/**
+ * Zeilen der Cookie-Tabelle einer Kategorie: Vorlagen der Dienste dieser Seite, eigene Einträge, bei „Notwendig“
+ * dazu die Cookies des Banners.
+ */
+function cookieRows(category) {
+    const storage = { local: ' (Local Storage)', session: ' (Session Storage)', cookie: '' };
+    const own = category === 'necessary' ? ownCookies(Number(config.cookieDays || 182), mediaServices, (key) => SERVICES[key].label) : [];
+    const rows = [...own, ...siteCookies.filter((cookie) => (cookie.category || 'necessary') === category)].map((cookie) => ({
+        name: escapeHtml(cookie.name) + (storage[cookie.type] || ''),
+        service: escapeHtml(cookie.provider || t.thisWebsite),
+        duration: escapeHtml(cookie.duration || '–'),
+        description: escapeHtml(cookie.description || ''),
+    }));
+
+    for (const key of serviceKeys.filter((key) => SERVICES[key].category === category)) {
+        for (const cookie of SERVICES[key].cookies || []) {
+            rows.push({
+                name: escapeHtml(cookie.name),
+                service: escapeHtml(SERVICES[key].label),
+                duration: escapeHtml(cookie.duration),
+                description: escapeHtml(cookie.description),
+            });
+        }
+    }
+
+    return rows;
+}
+
+/** „Anbieter: Google Analytics (Google Ireland Limited, Irland, Datenschutz) …“ unter der Beschreibung der Kategorie. */
+function providerLinks(category) {
+    const items = serviceKeys.filter((key) => SERVICES[key].category === category).map((key) => {
+        const service = SERVICES[key];
+        const privacy = service.privacy ? `, <a href="${escapeHtml(service.privacy)}" target="_blank" rel="noopener">Datenschutz</a>` : '';
+
+        return `${escapeHtml(service.label)} (${escapeHtml(service.provider || '')}${privacy})`;
+    });
+
+    return items.length === 0 ? '' : `<br><br>${t.providers}: ${items.join('; ')}.`;
+}
+
+/**
+ * Inventar für uns beim Einrichten: mit #wm-consent-inventar an der Adresse stehen in der Konsole alle Cookies und
+ * Einträge im Local/Session Storage dieser Seite, die noch nirgends beschrieben sind, samt Schnipsel für `cookies`.
+ */
+function inventory() {
+    const described = [
+        ...ownCookies(0, mediaServices, () => '').map((cookie) => cookie.name),
+        ...siteCookies.map((cookie) => cookie.name),
+        ...serviceKeys.flatMap((key) => (SERVICES[key].cookies || []).map((cookie) => cookie.name)),
+        'cc_cookie',
+    ];
+    const known = (name) => described.some((pattern) => (pattern.endsWith('*') ? name.startsWith(pattern.slice(0, -1)) : pattern === name));
+    const found = [
+        ...document.cookie.split(';').map((part) => part.split('=')[0].trim()).filter(Boolean).map((name) => ({ name, type: 'cookie' })),
+        ...Object.keys(window.localStorage || {}).map((name) => ({ name, type: 'local' })),
+        ...Object.keys(window.sessionStorage || {}).map((name) => ({ name, type: 'session' })),
+    ].filter((entry) => !known(entry.name));
+
+    console.info(`[wm-consent] ${found.length} nicht beschriebene Einträge (HttpOnly-Cookies wie die Sitzung sieht das Skript nicht).`);
+
+    if (found.length > 0) {
+        console.table(found);
+        console.info('[wm-consent] Für die Einstellungen (cookies), Beschreibung und Dauer ergänzen:\n' + JSON.stringify(found.map((entry) => ({ ...entry, category: 'necessary', duration: '', description: '' })), null, 4));
+    }
+}
+
+function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 /** Nach jeder Entscheidung: Google Consent Mode und Platzhalter für Videos und Karten nachziehen. */

@@ -16,6 +16,14 @@ if (isset($settings['enabled']) && ! $settings['enabled']) {
     return '';
 }
 
+if (! isset($settings['auto_cookies']) || $settings['auto_cookies']) {
+    $sessionName = (string) ($modx->getOption('session_name') ?: session_name() ?: 'PHPSESSID');
+    $settings['cookies'] = array_merge(
+        [['name' => $sessionName, 'duration' => 'Ende der Sitzung', 'description' => 'Hält Ihre Sitzung auf dieser Website, z. B. für Formulare.']],
+        (array) ($settings['cookies'] ?? [])
+    );
+}
+
 $assetsUrl = $modx->getOption('assets_url').'components/wm-consent/';
 $assetsPath = $modx->getOption('assets_path').'components/wm-consent/';
 

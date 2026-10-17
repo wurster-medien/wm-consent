@@ -60,4 +60,15 @@ return [
     /* Platzhalter für Videos und Karten: „Immer laden“ (Akzentfarbe) und auf Wunsch zusätzlich „Einmal laden“. */
     'load_once' => false,
 
+    /*
+     * Cookie-Liste in den Einstellungen des Banners: Dienste bringen ihre Vorlage selbst mit (resources/js/services.js),
+     * Session- und XSRF-Cookie trägt das Addon von selbst ein (auto_cookies). Hier nur, was die Seite selbst speichert,
+     * z. B. ['name' => 'warenkorb', 'type' => 'local', 'duration' => 'bis zum Löschen', 'description' => 'Merkt sich die Auswahl.'].
+     * type: cookie, local (Local Storage) oder session (Session Storage); category: necessary (Standard), analytics,
+     * marketing, media. Finden: Seite mit #wm-consent-inventar öffnen, die Konsole listet alles Unbeschriebene.
+     */
+    'cookies' => [],
+
+    'auto_cookies' => true,
+
 ];

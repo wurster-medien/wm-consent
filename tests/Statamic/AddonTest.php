@@ -33,6 +33,16 @@ class AddonTest extends AddonTestCase
         $this->assertStringContainsString('<script src="/wm-consent/wm-consent.js?v=', $html);
         $this->assertStringContainsString('"highlight":"#c2410c"', $html);
         $this->assertStringContainsString('data-wm-consent>', $html);
+        $this->assertStringContainsString('"name":"XSRF-TOKEN","description":"Schützt Formulare', $html);
+        $this->assertStringContainsString('"name":"'.config('session.cookie').'"', $html);
+    }
+
+    public function test_parameters_replace_settings_per_call(): void
+    {
+        $html = $this->render('{{ wm_consent google_analytics_id="G-FOTO1234" services="youtube" }}');
+
+        $this->assertStringContainsString('gtag/js?id=G-FOTO1234', $html);
+        $this->assertStringContainsString('"services":["youtube","google_analytics"]', $html);
     }
 
     public function test_link_and_script_pairs(): void

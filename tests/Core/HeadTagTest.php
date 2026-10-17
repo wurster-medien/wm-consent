@@ -41,6 +41,26 @@ class HeadTagTest extends TestCase
         $this->assertTrue(HeadTag::config(['load_once' => true])['loadOnce']);
     }
 
+    public function test_own_cookies_are_cleaned_up(): void
+    {
+        $config = HeadTag::config([
+            'services' => 'youtube|vimeo',
+            'cookies' => [
+                ['name' => 'warenkorb', 'type' => 'local', 'duration' => 'bis zum Löschen', 'description' => 'Auswahl'],
+                ['name' => 'warenkorb', 'description' => 'doppelt'],
+                ['name' => '', 'description' => 'ohne Namen'],
+                ['name' => 'tracker', 'category' => 'erfunden', 'type' => 'datenbank'],
+                'kein Eintrag',
+            ],
+        ]);
+
+        $this->assertSame(['youtube', 'vimeo'], $config['services']);
+        $this->assertSame([
+            ['name' => 'warenkorb', 'description' => 'Auswahl', 'duration' => 'bis zum Löschen', 'provider' => '', 'category' => 'necessary', 'type' => 'local'],
+            ['name' => 'tracker', 'description' => '', 'duration' => '', 'provider' => '', 'category' => 'necessary', 'type' => 'cookie'],
+        ], $config['cookies']);
+    }
+
     public function test_texts_cannot_close_the_config_script(): void
     {
         $html = HeadTag::render(['texts' => ['title' => '</script><script>alert(1)</script>']], '/wm-consent');

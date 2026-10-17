@@ -42,4 +42,13 @@
 | `revision` | erhöhen, wenn alle neu gefragt werden sollen |
 | `floating_button` | runder Knopf unten links zum Wieder-Öffnen |
 | `load_once` | Platzhalter zusätzlich mit „Einmal laden“ (sonst nur „Immer laden“ in der Akzentfarbe) |
+| `cookies` | eigene Einträge der Cookie-Liste: `name`, `type` (`cookie`, `local`, `session`), `duration`, `description`, optional `category` und `provider` |
+| `auto_cookies` | PHP-Session-Cookie von selbst in die Liste (Standard `true`) |
 | `enabled`, `filter` | `false` schaltet den Banner bzw. nur den Filter ab |
+
+## Cookie-Liste
+
+Jeder Dienst, den der Filter auf der Seite findet, bringt seine Vorlage mit (Anbieter, Datenschutz-Link, Cookies mit
+Laufzeit). Eigenes (Warenkorb im Local Storage, Popup-Status …) unter `cookies` eintragen. Zum Finden die Seite mit
+`#wm-consent-inventar` am Ende der Adresse öffnen: die Browser-Konsole listet alle Cookies und Speichereinträge, die
+noch nirgends beschrieben sind, samt Schnipsel zum Einfügen.

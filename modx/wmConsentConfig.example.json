@@ -14,5 +14,9 @@
     "revision": 0,
     "cookie_days": 182,
     "floating_button": false,
-    "load_once": false
+    "load_once": false,
+    "cookies": [
+        { "name": "warenkorb", "type": "local", "duration": "bis zum Löschen", "description": "Merkt sich die ausgewählten Artikel." }
+    ],
+    "auto_cookies": true
 }

@@ -42,6 +42,23 @@ Im Layout:
 
 Lokal mit Path-Repository einbinden wie beim Social Hub (`"type": "path", "url": "../wm-consent"`), nicht committen.
 
+## Cookie-Liste
+
+In den Einstellungen des Banners steht je Kategorie eine Tabelle mit jedem Cookie (Name, Dienst, Dauer, Zweck) und
+die Anbieter mit Datenschutz-Link, ohne Pflegeaufwand:
+
+- **Dienste** bringen ihre Vorlage mit (`resources/js/services.js`, laut Anbieter, Stand 10/2026) und erscheinen, sobald
+  der Filter sie auf der Seite findet oder sie unter `services` stehen.
+- **Session- und XSRF-Cookie** trägt das Statamic-Addon selbst ein (Name und Laufzeit aus `config/session.php`), das
+  MODX-Snippet die PHP-Session; abschalten mit `auto_cookies => false`. Die Cookies des Banners stehen immer drin.
+- **Eigenes** der Seite (Warenkorb im Local Storage, Popup-Status …) unter `cookies`. Zum Finden die Seite mit
+  `#wm-consent-inventar` am Ende der Adresse öffnen: die Browser-Konsole listet alles noch nicht Beschriebene samt
+  Schnipsel zum Einfügen (HttpOnly-Cookies sieht das Skript nicht, die kommen über `auto_cookies`).
+
+Multisite: einzelne Einstellungen als Parameter am Tag, z. B.
+`{{ wm_consent :google_analytics_id="site:attributes:gtag" }}` (auch `privacy_url`, `imprint_url`, `mode`,
+`position`, `revision`, `services`).
+
 ## Entwickeln
 
 ```bash

@@ -12,7 +12,8 @@ namespace WursterMedien\Consent\Core;
  * mode (auto|light|dark), position, colors.light|dark.background|text|highlight|highlight_text, privacy_url,
  * imprint_url, texts (Ersetzungen, siehe resources/js/texts.js), services (zusätzlich anzeigen), revision (erhöhen =
  * neu fragen), consent_mode (Standard an), cookie_days, floating_button, google_analytics_id, load_once (Platzhalter
- * zusätzlich mit „Einmal laden“ neben „Immer laden“, Standard aus).
+ * zusätzlich mit „Einmal laden“ neben „Immer laden“, Standard aus), cookies (eigene Einträge der Cookie-Liste,
+ * siehe cookies()).
  *
  * PHP 7.4-tauglich.
  */
@@ -58,7 +59,9 @@ final class HeadTag
     public static function config(array $settings): array
     {
         $mode = in_array($settings['mode'] ?? 'auto', ['auto', 'light', 'dark'], true) ? $settings['mode'] ?? 'auto' : 'auto';
-        $services = array_values(array_intersect(array_map('strval', (array) ($settings['services'] ?? [])), Services::keys()));
+        $services = $settings['services'] ?? [];
+        $services = is_string($services) ? preg_split('/[\s,|]+/', $services, -1, PREG_SPLIT_NO_EMPTY) : (array) $services;
+        $services = array_values(array_intersect(array_map('strval', $services), Services::keys()));
 
         if (self::analyticsId($settings['google_analytics_id'] ?? null) !== null) {
             $services[] = 'google_analytics';
@@ -80,7 +83,46 @@ final class HeadTag
             'cookieDays' => max(1, min(365, (int) ($settings['cookie_days'] ?? 182))),
             'floatingButton' => (bool) ($settings['floating_button'] ?? false),
             'loadOnce' => (bool) ($settings['load_once'] ?? false),
+            'cookies' => self::cookies((array) ($settings['cookies'] ?? [])),
         ];
+    }
+
+    /**
+     * Eigene Einträge der Seite für die Cookie-Liste (zusätzlich zu den Vorlagen der Dienste): name, description,
+     * duration, optional provider, category (Standard necessary) und type (cookie, local = Local Storage, session =
+     * Session Storage). Ohne Namen fällt ein Eintrag weg, jeder Name einmal.
+     *
+     * @param  array<int, mixed>  $cookies
+     * @return list<array{name: string, description: string, duration: string, provider: string, category: string, type: string}>
+     */
+    private static function cookies(array $cookies): array
+    {
+        $result = [];
+
+        foreach ($cookies as $cookie) {
+            if (! is_array($cookie)) {
+                continue;
+            }
+
+            $name = trim((string) ($cookie['name'] ?? ''));
+            $category = (string) ($cookie['category'] ?? 'necessary');
+            $type = (string) ($cookie['type'] ?? 'cookie');
+
+            if ($name === '' || isset($result[$name])) {
+                continue;
+            }
+
+            $result[$name] = [
+                'name' => mb_substr($name, 0, 100),
+                'description' => mb_substr(trim((string) ($cookie['description'] ?? '')), 0, 500),
+                'duration' => mb_substr(trim((string) ($cookie['duration'] ?? '')), 0, 60),
+                'provider' => mb_substr(trim((string) ($cookie['provider'] ?? '')), 0, 100),
+                'category' => in_array($category, Services::CATEGORIES, true) ? $category : 'necessary',
+                'type' => in_array($type, ['cookie', 'local', 'session'], true) ? $type : 'cookie',
+            ];
+        }
+
+        return array_values($result);
     }
 
     /**
