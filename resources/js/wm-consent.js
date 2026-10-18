@@ -439,6 +439,8 @@ function variables(colors, dark, overlay) {
         `--wm-consent-accent:${accent}`,
         `--wm-consent-on-accent:${onAccent}`,
         `--wm-consent-muted:${muted}`,
+        /* Kopf der geöffneten Kategorie: dunkel deutlich abgesetzt, hell nur ein Hauch der Textfarbe. */
+        `--wm-consent-open-head:${dark ? `color-mix(in srgb, #000 30%, ${bg})` : `color-mix(in srgb, ${text} 11%, ${bg})`}`,
     ].join(';');
 }
 

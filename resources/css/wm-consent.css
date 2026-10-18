@@ -195,7 +195,7 @@
 #cc-main .pm__section--toggle.is-expanded .pm__section-title,
 #cc-main .pm__section--toggle.is-expanded .pm__section-title:hover {
     color: var(--wm-consent-accent);
-    background: color-mix(in srgb, #000 30%, var(--cc-bg));
+    background: var(--wm-consent-open-head, color-mix(in srgb, #000 30%, var(--cc-bg)));
     border-color: transparent;
 }
 
