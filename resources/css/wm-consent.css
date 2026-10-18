@@ -111,6 +111,34 @@
     right: 1em;
 }
 
+/* Nur einige Dienste der Kategorie an (partialCategories): Knopf in der Mitte, Strich statt Haken. */
+#cc-main .section__toggle:indeterminate ~ .toggle__icon {
+    background: color-mix(in srgb, var(--cc-toggle-on-bg) 55%, var(--cc-toggle-off-bg));
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--cc-toggle-on-bg) 55%, var(--cc-toggle-off-bg));
+}
+
+#cc-main .section__toggle:indeterminate ~ .toggle__icon .toggle__icon-circle {
+    background-color: var(--cc-toggle-on-knob-bg);
+    transform: translateX(13.5px);
+}
+
+#cc-main .section__toggle:indeterminate ~ .toggle__icon .toggle__icon-on,
+#cc-main .section__toggle:indeterminate ~ .toggle__icon .toggle__icon-off {
+    opacity: 0;
+}
+
+#cc-main .section__toggle:indeterminate ~ .toggle__icon .toggle__icon-circle::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 9px;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--cc-toggle-on-bg);
+    transform: translate(-50%, -50%);
+}
+
 #cc-main .pm__section-services[hidden] {
     display: none;
 }

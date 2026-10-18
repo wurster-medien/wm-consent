@@ -67,6 +67,12 @@ CookieConsent.run({
     onModalReady: ({ modalName, modal }) => {
         if (modalName === 'preferencesModal') {
             togglesIntoCards(modal);
+            partialCategories(modal);
+        }
+    },
+    onModalShow: ({ modalName, modal }) => {
+        if (modalName === 'preferencesModal' && modal) {
+            partialCategories(modal);
         }
     },
 });
@@ -239,6 +245,36 @@ function togglesIntoCards(modal) {
         if (!list.querySelector('.toggle-service')) {
             list.hidden = true;
         }
+    });
+}
+
+/**
+ * Kategorie, in der nur einige Dienste an sind: Schalter halb (indeterminate, Knopf in der Mitte mit Strich). Ein
+ * Klick darauf schaltet dann alle Dienste an statt aus. Neu berechnet nach jeder Änderung im Dialog und beim Öffnen,
+ * weil CookieConsent die Schalter beim Öffnen und Speichern ohne Ereignis setzt.
+ */
+function partialCategories(modal) {
+    if (!modal.dataset.wmPartial) {
+        modal.dataset.wmPartial = '1';
+        modal.addEventListener('change', () => partialCategories(modal));
+        /* Vor dem Klick-Handler von CookieConsent (Erfassungsphase): der Browser hat schon auf „aus“ umgeschaltet. */
+        modal.addEventListener('click', (event) => {
+            const input = event.target;
+
+            if (input instanceof HTMLInputElement && input.dataset.wmPartial === '1') {
+                input.checked = true;
+            }
+        }, true);
+    }
+
+    modal.querySelectorAll('.pm__section-title-wrapper .section__toggle').forEach((input) => {
+        const section = input.closest('.pm__section--toggle');
+        const services = section ? [...section.querySelectorAll('.toggle-service input')] : [];
+        const on = services.filter((service) => service.checked).length;
+        const partial = on > 0 && on < services.length;
+
+        input.indeterminate = partial;
+        input.dataset.wmPartial = partial ? '1' : '';
     });
 }
 
