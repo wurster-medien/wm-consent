@@ -96,6 +96,25 @@
     gap: 0.25em 0.75em;
 }
 
+/* Schalter des Dienstes rechts im Kopf der Karte (togglesIntoCards in wm-consent.js). */
+#cc-main .wm-cookie-group:has(.toggle-service) {
+    position: relative;
+}
+
+#cc-main .wm-cookie-service:has(.toggle-service) {
+    padding-right: 3.5em;
+}
+
+#cc-main .wm-cookie-service .toggle-service {
+    position: absolute;
+    top: 0.9em;
+    right: 1em;
+}
+
+#cc-main .pm__section-services[hidden] {
+    display: none;
+}
+
 #cc-main .wm-cookie-title {
     font-weight: 600;
     color: var(--cc-primary-color);

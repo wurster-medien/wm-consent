@@ -64,6 +64,11 @@ CookieConsent.run({
     language: { default: lang.lang, translations: { [lang.lang]: translation() } },
     onConsent: syncAll,
     onChange: syncAll,
+    onModalReady: ({ modalName, modal }) => {
+        if (modalName === 'preferencesModal') {
+            togglesIntoCards(modal);
+        }
+    },
 });
 
 document.addEventListener('click', (event) => {
@@ -180,7 +185,7 @@ function cookieList(category) {
 
     for (const key of serviceKeys.filter((key) => SERVICES[key].category === category)) {
         const service = SERVICES[key];
-        groups.push({ title: service.label, provider: service.provider || '', privacy: service.privacy || '', cookies: service.cookies || [] });
+        groups.push({ key, title: service.label, provider: service.provider || '', privacy: service.privacy || '', cookies: service.cookies || [] });
     }
 
     return groups.length === 0 ? '' : `<span class="wm-cookies">${groups.map(cookieGroup).join('')}</span>`;
@@ -204,8 +209,37 @@ function cookieGroup(group) {
             + `<span class="wm-cookie-desc">${escapeHtml(localize(cookie.description, lang))}</span></span>`;
     }).join('');
 
-    return `<span class="wm-cookie-group"><span class="wm-cookie-service"><span class="wm-cookie-title">${escapeHtml(group.title)}</span>`
+    return `<span class="wm-cookie-group"${group.key ? ` data-wm-service="${escapeHtml(group.key)}"` : ''}><span class="wm-cookie-service"><span class="wm-cookie-title">${escapeHtml(group.title)}</span>`
         + `${meta ? `<span class="wm-cookie-meta">${meta}</span>` : ''}</span>${rows}</span>`;
+}
+
+/**
+ * Schalter der Dienste (CookieConsent baut sie als eigene Liste über der Beschreibung) in den Kopf der passenden
+ * Karte der Cookie-Liste: lesen und entscheiden an einer Stelle. Die Elemente selbst wandern, damit Logik, Kopplung
+ * an den Schalter der Kategorie und Tastatur bleiben. Bei nur einem Dienst bleibt es beim Schalter der Kategorie.
+ */
+function togglesIntoCards(modal) {
+    modal.querySelectorAll('.pm__section-services').forEach((list) => {
+        const toggles = [...list.querySelectorAll('.toggle-service')];
+        const wrapper = list.parentElement;
+
+        if (toggles.length < 2 || !wrapper) {
+            return;
+        }
+
+        for (const toggle of toggles) {
+            const input = toggle.querySelector('input');
+            const card = input && wrapper.querySelector(`.wm-cookie-group[data-wm-service="${CSS.escape(input.value)}"] .wm-cookie-service`);
+
+            if (card) {
+                card.appendChild(toggle);
+            }
+        }
+
+        if (!list.querySelector('.toggle-service')) {
+            list.hidden = true;
+        }
+    });
 }
 
 /**
