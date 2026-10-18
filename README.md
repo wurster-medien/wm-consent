@@ -62,9 +62,20 @@ Eintrag mit Dauer und Zweck in einem Satz, ohne Pflegeaufwand:
   `#wm-consent-inventar` am Ende der Adresse öffnen: die Browser-Konsole listet alles noch nicht Beschriebene samt
   Schnipsel zum Einfügen (HttpOnly-Cookies sieht das Skript nicht, die kommen über `auto_cookies`).
 
-Multisite: einzelne Einstellungen als Parameter am Tag, z. B.
-`{{ wm_consent :google_analytics_id="site:attributes:gtag" }}` (auch `privacy_url`, `imprint_url`, `mode`,
-`position`, `revision`, `services`).
+## Sprachen und mehrere Websites
+
+- Der Banner spricht **Deutsch, Englisch und Französisch** (Texte, Kategorien, Cookie-Liste; `resources/js/texts.js`
+  und `services.js`), andere Sprachen bekommen Englisch. Die Sprache kommt von selbst: Statamic aus der aktuellen
+  Site, MODX aus dem `cultureKey` des Kontexts, sonst aus `<html lang>`.
+- **Statamic:** Unter „Texte“ steht je Sprache der Sites ein Abschnitt. Bei mehreren Sites (z. B. site1/de,
+  site1/en, site2/de) zeigt der Tab „Websites“ je Site Datenschutz, Impressum und GA-Mess-ID; leer heißt: Wert aus
+  „Allgemein“. Gespeichert als `texts.<sprache>` und `sites.<site-handle>`.
+- **MODX:** im Chunk `texts` je Sprache (`{"de": {…}, "en": {…}}`) und `sites` je Kontext, siehe `modx/README.md`.
+- Flache `texts` (ohne Sprache) gelten für alle Sprachen. Beschreibung und Dauer eigener Cookies gehen auch je Sprache:
+  `"description": {"de": "…", "en": "…"}`.
+- Parameter am Tag gehen für Sonderfälle weiter vor, z. B. `{{ wm_consent lang="en" }}` oder
+  `{{ wm_consent :google_analytics_id="site:attributes:gtag" }}` (auch `privacy_url`, `imprint_url`, `mode`,
+  `position`, `revision`, `services`).
 
 ## Entwickeln
 

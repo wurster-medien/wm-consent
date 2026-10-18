@@ -4,6 +4,7 @@ namespace WursterMedien\Consent\Tests\Core;
 
 use PHPUnit\Framework\TestCase;
 use WursterMedien\Consent\Core\HeadTag;
+use WursterMedien\Consent\Core\Lang;
 
 class HeadTagTest extends TestCase
 {
@@ -33,10 +34,7 @@ class HeadTagTest extends TestCase
         $this->assertSame('auto', $config['mode']);
         $this->assertSame(['background' => '#fff', 'highlight' => 'rgb(20, 184, 166)'], $config['theme']['light']);
         $this->assertSame(['highlight' => '#2dd4bf'], $config['theme']['dark']);
-        $this->assertSame(
-            ['background' => '#1e293b', 'muted' => '#334155', 'mutedText' => '#94a3b8', 'border' => '#334155'],
-            HeadTag::config(['colors' => ['dark' => ['background' => '#1e293b', 'muted' => '#334155', 'muted_text' => '#94a3b8', 'border' => '#334155']]])['theme']['dark'],
-        );
+        $this->assertSame(['background' => '#1e293b'], HeadTag::config(['colors' => ['dark' => ['background' => '#1e293b', 'muted' => '#334155']]])['theme']['dark']);
         $this->assertNull($config['privacyUrl']);
         $this->assertSame('/impressum', $config['imprintUrl']);
         $this->assertSame(['youtube'], $config['services']);
@@ -48,7 +46,8 @@ class HeadTagTest extends TestCase
         $this->assertFalse(HeadTag::config(['blur' => false])['blur']);
         $this->assertSame(8, $config['blurStrength']);
         $this->assertSame(30, HeadTag::config(['blur_strength' => 99])['blurStrength']);
-        $this->assertSame(['overlay' => 'rgba(51, 65, 85, .7)'], HeadTag::config(['colors' => ['light' => ['overlay' => 'rgba(51, 65, 85, .7)']]])['theme']['light']);
+        $this->assertSame(50, $config['overlayOpacity']);
+        $this->assertSame(90, HeadTag::config(['overlay_opacity' => 120])['overlayOpacity']);
         $this->assertTrue(HeadTag::config(['load_once' => true])['loadOnce']);
     }
 
@@ -78,5 +77,54 @@ class HeadTagTest extends TestCase
 
         $this->assertStringNotContainsString('</script><script>alert(1)', $html);
         $this->assertStringContainsString('</script>', $html);
+    }
+
+    public function test_each_site_overrides_links_analytics_language_and_texts(): void
+    {
+        $settings = [
+            'privacy_url' => '/datenschutz',
+            'google_analytics_id' => 'G-ALLE1234',
+            'texts' => ['title' => 'Für alle', 'de' => ['title' => 'Deutsch', 'description' => 'Text'], 'en' => ['title' => 'English']],
+            'sites' => [
+                'site2_en' => ['lang' => 'en_GB', 'privacy_url' => '/en/privacy', 'google_analytics_id' => 'G-SITE2222', 'imprint_url' => '', 'texts' => ['acceptAll' => 'OK', 'en' => ['title' => 'Site 2']]],
+            ],
+        ];
+
+        $config = HeadTag::config($settings + ['site' => 'site2_en']);
+        $this->assertSame('en', $config['lang']);
+        $this->assertSame('/en/privacy', $config['privacyUrl']);
+        $this->assertNull($config['imprintUrl']);
+        $this->assertSame(['*' => ['title' => 'Für alle', 'acceptAll' => 'OK'], 'de' => ['title' => 'Deutsch', 'description' => 'Text', 'acceptAll' => 'OK'], 'en' => ['title' => 'Site 2', 'acceptAll' => 'OK']], (array) $config['texts']);
+        $this->assertStringContainsString('gtag/js?id=G-SITE2222', HeadTag::render($settings + ['site' => 'site2_en'], '/wm-consent'));
+
+        $other = HeadTag::config($settings + ['site' => 'site1_de', 'lang' => 'de-AT']);
+        $this->assertSame('de', $other['lang']);
+        $this->assertSame('/datenschutz', $other['privacyUrl']);
+        $this->assertSame(['*' => ['title' => 'Für alle'], 'de' => ['title' => 'Deutsch', 'description' => 'Text'], 'en' => ['title' => 'English']], (array) $other['texts']);
+        $this->assertStringContainsString('gtag/js?id=G-ALLE1234', HeadTag::render($settings + ['site' => 'site1_de'], '/wm-consent'));
+
+        $this->assertNull(HeadTag::config([])['lang']);
+        $this->assertStringContainsString('"texts":{}', HeadTag::render([], '/wm-consent'));
+    }
+
+    public function test_own_cookies_may_be_described_per_language(): void
+    {
+        $cookie = HeadTag::config(['cookies' => [['name' => 'warenkorb', 'duration' => ['de' => '1 Tag', 'en' => '1 day', 'xx-evil' => 'x'], 'description' => ['de' => 'Merkt sich den Warenkorb.', 'fr' => 'Mémorise le panier.']]]])['cookies'][0];
+
+        $this->assertSame(['de' => '1 Tag', 'en' => '1 day'], $cookie['duration']);
+        $this->assertSame(['de' => 'Merkt sich den Warenkorb.', 'fr' => 'Mémorise le panier.'], $cookie['description']);
+    }
+
+    public function test_language_codes_and_php_texts(): void
+    {
+        $this->assertSame('de', Lang::code('de_DE'));
+        $this->assertSame('fr', Lang::code('FR-ch'));
+        $this->assertNull(Lang::code('deutsch'));
+        $this->assertNull(Lang::code(null));
+        $this->assertSame('Cookie settings', Lang::get('link', 'it'));
+        $this->assertSame('Cookie-Einstellungen', Lang::get('link', null));
+        $this->assertSame(['de' => '90 Minuten', 'en' => '90 minutes', 'fr' => '90 minutes'], Lang::minutes(90));
+        $this->assertSame('1 Stunde', Lang::minutes(60)['de']);
+        $this->assertSame('Fin de la session', Lang::minutes(0)['fr']);
     }
 }

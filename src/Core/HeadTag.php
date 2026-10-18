@@ -10,13 +10,18 @@ namespace WursterMedien\Consent\Core;
  *
  * Einstellungen (snake_case, gleich für Statamic-Config und MODX-Chunk), alles optional:
  * mode (auto|light|dark), position (POSITIONS), blur (Hintergrund unscharf und gesperrt bis zur Auswahl, Standard an),
- * blur_strength (Unschärfe in px, 0–30, Standard 8),
- * colors.light|dark.background|text|highlight|highlight_text|muted (Nebenflächen)|muted_text (Nebentext)|border|overlay
- * (Farbe über der Seite, mit Transparenz, z. B. rgba(15, 23, 42, .5))|heading (Überschriften), privacy_url,
+ * blur_strength (Unschärfe in px, 0–30, Standard 8), overlay_opacity (Deckkraft der Fläche über der Seite in %, 0–90,
+ * Standard 50), colors.light|dark.background|text|highlight (Nebenflächen, Nebentext, Linien und die Fläche über der
+ * Seite ergeben sich daraus mit Transparenz), privacy_url,
  * imprint_url, texts (Ersetzungen, siehe resources/js/texts.js), services (zusätzlich anzeigen), revision (erhöhen =
  * neu fragen), consent_mode (Standard an), cookie_days, floating_button, google_analytics_id, load_once (Platzhalter
  * zusätzlich mit „Einmal laden“ neben „Immer laden“, Standard aus), cookies (eigene Einträge der Cookie-Liste,
  * siehe cookies()).
+ *
+ * Mehrere Websites und Sprachen: lang (de, en_GB …; ohne Angabe nimmt das Skript <html lang>), site (Schlüssel der
+ * aktuellen Website: Statamic-Site, MODX-Kontext) und sites.<site> mit Werten, die für diese Website vorgehen
+ * (SITE_KEYS, dazu texts). texts flach (alle Sprachen) oder je Sprache ({"de": {…}, "en": {…}}), auch gemischt.
+ * Beschreibung und Dauer eigener Cookies ebenso als Text oder je Sprache.
  *
  * PHP 7.4-tauglich.
  */
@@ -27,6 +32,9 @@ final class HeadTag
     /** Wo der Banner steht (`position`), wie bei CookieConsent: oben, Mitte, unten jeweils links, mittig, rechts. */
     public const POSITIONS = ['top left', 'top center', 'top right', 'middle left', 'middle center', 'middle right', 'bottom left', 'bottom center', 'bottom right'];
 
+    /** Was eine Website (`sites.<site>`) neben texts selbst festlegen kann; leer heißt: wie für alle. */
+    public const SITE_KEYS = ['lang', 'privacy_url', 'imprint_url', 'google_analytics_id'];
+
     /**
      * @param  array<string, mixed>  $settings
      */
@@ -34,7 +42,8 @@ final class HeadTag
     {
         $assetUrl = rtrim($assetUrl, '/');
         $version = rawurlencode($version ?? self::VERSION);
-        $config = self::config($settings);
+        $settings = self::resolve($settings);
+        $config = self::build($settings);
         $analyticsId = self::analyticsId($settings['google_analytics_id'] ?? null);
 
         $html = '<link rel="stylesheet" href="'.self::escape($assetUrl.'/wm-consent.css?v='.$version).'" data-wm-consent-ignore>'."\n";
@@ -64,6 +73,74 @@ final class HeadTag
      */
     public static function config(array $settings): array
     {
+        return self::build(self::resolve($settings));
+    }
+
+    /**
+     * Werte der aktuellen Website (`site`) über die allgemeinen legen. Texte als Map Sprache → Texte, '*' für alle
+     * Sprachen; das Skript nimmt Standard, dann '*', dann die Sprache der Seite. Texte der Website gehen dabei vor.
+     *
+     * @param  array<string, mixed>  $settings
+     * @return array<string, mixed>
+     */
+    private static function resolve(array $settings): array
+    {
+        $site = is_scalar($settings['site'] ?? null) ? (string) $settings['site'] : '';
+        $overrides = $site !== '' && is_array($settings['sites'][$site] ?? null) ? $settings['sites'][$site] : [];
+
+        foreach (self::SITE_KEYS as $key) {
+            if (is_scalar($overrides[$key] ?? null) && trim((string) $overrides[$key]) !== '') {
+                $settings[$key] = $overrides[$key];
+            }
+        }
+
+        $global = self::texts($settings['texts'] ?? []);
+        $own = self::texts($overrides['texts'] ?? []);
+        $settings['texts'] = [];
+
+        foreach (array_unique(array_merge(array_keys($global), array_keys($own))) as $lang) {
+            $settings['texts'][$lang] = $lang === '*'
+                ? array_replace($global['*'] ?? [], $own['*'] ?? [])
+                : array_replace($global[$lang] ?? [], $own['*'] ?? [], $own[$lang] ?? []);
+        }
+
+        unset($settings['sites']);
+
+        return $settings;
+    }
+
+    /**
+     * Ersetzte Texte als Map Sprache → Schlüssel → Text: flache Einträge gelten für alle Sprachen ('*'), Einträge unter
+     * einem Sprachkürzel nur für diese.
+     *
+     * @param  mixed  $texts
+     * @return array<string, array<string, string>>
+     */
+    private static function texts($texts): array
+    {
+        $result = [];
+
+        foreach ((array) $texts as $key => $value) {
+            if (is_array($value) && Lang::code($key) === $key) {
+                foreach ($value as $text => $content) {
+                    if (is_scalar($content) && trim((string) $content) !== '') {
+                        $result[$key][(string) $text] = (string) $content;
+                    }
+                }
+            } elseif (is_scalar($value) && trim((string) $value) !== '') {
+                $result['*'][(string) $key] = (string) $value;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param  array<string, mixed>  $settings  mit resolve() aufgelöst
+     * @return array<string, mixed>
+     */
+    private static function build(array $settings): array
+    {
         $mode = in_array($settings['mode'] ?? 'auto', ['auto', 'light', 'dark'], true) ? $settings['mode'] ?? 'auto' : 'auto';
         $services = $settings['services'] ?? [];
         $services = is_string($services) ? preg_split('/[\s,|]+/', $services, -1, PREG_SPLIT_NO_EMPTY) : (array) $services;
@@ -74,18 +151,20 @@ final class HeadTag
         }
 
         return [
+            'lang' => Lang::code($settings['lang'] ?? null),
             'revision' => (int) ($settings['revision'] ?? 0),
             'mode' => $mode,
             'position' => in_array($settings['position'] ?? '', self::POSITIONS, true) ? $settings['position'] : 'bottom right',
             'blur' => (bool) ($settings['blur'] ?? true),
             'blurStrength' => max(0, min(30, (int) ($settings['blur_strength'] ?? 8))),
+            'overlayOpacity' => max(0, min(90, (int) ($settings['overlay_opacity'] ?? 50))),
             'theme' => [
                 'light' => self::colors((array) ($settings['colors']['light'] ?? [])),
                 'dark' => self::colors((array) ($settings['colors']['dark'] ?? [])),
             ],
             'privacyUrl' => self::url($settings['privacy_url'] ?? null),
             'imprintUrl' => self::url($settings['imprint_url'] ?? null),
-            'texts' => array_map('strval', array_filter((array) ($settings['texts'] ?? []), 'is_scalar')),
+            'texts' => (object) $settings['texts'],
             'services' => array_values(array_unique($services)),
             'consentMode' => (bool) ($settings['consent_mode'] ?? true),
             'cookieDays' => max(1, min(365, (int) ($settings['cookie_days'] ?? 182))),
@@ -97,11 +176,11 @@ final class HeadTag
 
     /**
      * Eigene Einträge der Seite für die Cookie-Liste (zusätzlich zu den Vorlagen der Dienste): name, description,
-     * duration, optional provider, category (Standard necessary) und type (cookie, local = Local Storage, session =
-     * Session Storage). Ohne Namen fällt ein Eintrag weg, jeder Name einmal.
+     * duration (beide als Text oder je Sprache), optional provider, category (Standard necessary) und type (cookie,
+     * local = Local Storage, session = Session Storage). Ohne Namen fällt ein Eintrag weg, jeder Name einmal.
      *
      * @param  array<int, mixed>  $cookies
-     * @return list<array{name: string, description: string, duration: string, provider: string, category: string, type: string}>
+     * @return list<array<string, mixed>>
      */
     private static function cookies(array $cookies): array
     {
@@ -122,8 +201,8 @@ final class HeadTag
 
             $result[$name] = [
                 'name' => mb_substr($name, 0, 100),
-                'description' => mb_substr(trim((string) ($cookie['description'] ?? '')), 0, 500),
-                'duration' => mb_substr(trim((string) ($cookie['duration'] ?? '')), 0, 60),
+                'description' => self::localized($cookie['description'] ?? '', 500),
+                'duration' => self::localized($cookie['duration'] ?? '', 60),
                 'provider' => mb_substr(trim((string) ($cookie['provider'] ?? '')), 0, 100),
                 'category' => in_array($category, Services::CATEGORIES, true) ? $category : 'necessary',
                 'type' => in_array($type, ['cookie', 'local', 'session'], true) ? $type : 'cookie',
@@ -131,6 +210,29 @@ final class HeadTag
         }
 
         return array_values($result);
+    }
+
+    /**
+     * Text oder Map Sprache → Text (nur Sprachkürzel), gekürzt.
+     *
+     * @param  mixed  $value
+     * @return string|array<string, string>
+     */
+    private static function localized($value, int $length)
+    {
+        if (! is_array($value)) {
+            return mb_substr(trim(is_scalar($value) ? (string) $value : ''), 0, $length);
+        }
+
+        $result = [];
+
+        foreach ($value as $lang => $text) {
+            if (Lang::code($lang) === $lang && is_scalar($text)) {
+                $result[$lang] = mb_substr(trim((string) $text), 0, $length);
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -150,13 +252,11 @@ final class HeadTag
     private static function colors(array $colors): array
     {
         $result = [];
-        $keys = ['background' => 'background', 'text' => 'text', 'highlight' => 'highlight', 'highlight_text' => 'highlightText', 'muted' => 'muted', 'muted_text' => 'mutedText', 'border' => 'border', 'overlay' => 'overlay', 'heading' => 'heading'];
-
-        foreach ($keys as $key => $name) {
+        foreach (['background', 'text', 'highlight'] as $key) {
             $value = trim((string) ($colors[$key] ?? ''));
 
             if (preg_match('/^(#[0-9a-f]{3,8}|(rgb|hsl)a?\([0-9.,%\s\/]+\))$/i', $value) === 1) {
-                $result[$name] = $value;
+                $result[$key] = $value;
             }
         }
 

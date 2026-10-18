@@ -27,11 +27,12 @@ return [
 
     'blur_strength' => 8,
 
+    /* Deckkraft der Fläche über der Seite, solange der Banner offen ist, in % (0–90); hell in Textfarbe, dunkel in Hintergrundfarbe. */
+    'overlay_opacity' => 50,
+
     /*
-     * Farben je Modus: Hintergrund, Text, Akzent (Knöpfe, Schalter); highlight_text nur, wenn die Schrift auf dem Akzent
-     * nicht passt. Grautöne der Seite optional: muted (Nebenflächen, z. B. Knopf „Einstellungen“), muted_text (Nebentext),
-     * border (Linien); ohne Angabe aus Hintergrund und Text gemischt. overlay: Farbe über der Seite, solange der Banner
-     * offen ist, mit Transparenz, z. B. 'rgba(51, 65, 85, .7)'. heading: Farbe der Überschriften (Schrift kommt von h1/h2/h3 der Seite).
+     * Farben je Modus: Hintergrund, Text, Akzent (Knöpfe, Schalter). Nebenflächen, Nebentext und Linien ergeben sich
+     * aus dem Text mit Transparenz, die Schrift auf dem Akzent (weiß oder dunkel) aus dessen Helligkeit.
      */
     'colors' => [
         'light' => [
@@ -50,8 +51,17 @@ return [
 
     'imprint_url' => '/impressum',
 
-    /* Texte ersetzen, z. B. 'title' => 'Ihre Privatsphäre'. Schlüssel siehe resources/js/texts.js. */
+    /*
+     * Texte ersetzen, flach für alle Sprachen ('title' => 'Ihre Privatsphäre') oder je Sprache ('en' => ['title' => 'Your
+     * privacy']). Schlüssel siehe resources/js/texts.js; Standardtexte gibt es auf Deutsch, Englisch und Französisch.
+     */
     'texts' => [],
+
+    /*
+     * Werte je Statamic-Site (Handle), die vorgehen: lang, privacy_url, imprint_url, google_analytics_id, texts. Pflege
+     * besser im Control Panel (Tab „Websites“), z. B. 'site1_en' => ['privacy_url' => '/en/privacy'].
+     */
+    'sites' => [],
 
     /* Dienste, die immer im Banner stehen sollen, auch wenn der Filter sie auf der Seite nicht findet (z. B. 'google_analytics'). */
     'services' => [],

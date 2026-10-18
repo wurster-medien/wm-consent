@@ -2,8 +2,10 @@
 
 namespace WursterMedien\Consent\Tags;
 
+use Statamic\Facades\Site;
 use Statamic\Tags\Tags;
 use WursterMedien\Consent\Core\HeadTag;
+use WursterMedien\Consent\Core\Lang;
 use WursterMedien\Consent\Core\Services;
 use WursterMedien\Consent\Settings;
 
@@ -18,8 +20,8 @@ class WmConsent extends Tags
 {
     protected static $handle = 'wm_consent';
 
-    /** Einstellungen, die der Tag je Aufruf ersetzen kann, z. B. {{ wm_consent :google_analytics_id="site:attributes:gtag" }} (Multisite). */
-    private const PARAMETERS = ['google_analytics_id', 'privacy_url', 'imprint_url', 'mode', 'position', 'revision', 'services'];
+    /** Einstellungen, die der Tag je Aufruf ersetzen kann, z. B. {{ wm_consent lang="en" }}; je Site besser im Tab „Websites“. */
+    private const PARAMETERS = ['google_analytics_id', 'privacy_url', 'imprint_url', 'mode', 'position', 'revision', 'services', 'lang'];
 
     public function index(): string
     {
@@ -29,6 +31,9 @@ class WmConsent extends Tags
 
         $path = (string) parse_url(url('wm-consent'), PHP_URL_PATH);
         $settings = app(Settings::class)->all();
+        /* Aktuelle Site: ihre Werte aus dem Tab „Websites“ (sites.<handle>) und ihre Sprache. */
+        $settings['site'] = Site::current()->handle();
+        $settings['lang'] = Site::current()->lang();
 
         foreach (self::PARAMETERS as $key) {
             if ($this->params->has($key)) {
@@ -52,12 +57,11 @@ class WmConsent extends Tags
             return [];
         }
 
-        $minutes = (int) config('session.lifetime', 120);
-        $duration = config('session.expire_on_close') ? 'Ende der Sitzung' : ($minutes % 60 === 0 ? ($minutes / 60).' Stunden' : $minutes.' Minuten');
+        $duration = Lang::minutes(config('session.expire_on_close') ? 0 : (int) config('session.lifetime', 120));
 
         return [
-            ['name' => (string) config('session.cookie', 'laravel_session'), 'duration' => $duration, 'description' => 'Hält Ihre Sitzung auf dieser Website, z. B. für Formulare und Anmeldung.'],
-            ['name' => 'XSRF-TOKEN', 'duration' => $duration, 'description' => 'Schützt Formulare vor Missbrauch durch fremde Seiten (CSRF-Schutz).'],
+            ['name' => (string) config('session.cookie', 'laravel_session'), 'duration' => $duration, 'description' => Lang::all('session')],
+            ['name' => 'XSRF-TOKEN', 'duration' => $duration, 'description' => Lang::all('xsrf')],
         ];
     }
 
@@ -66,7 +70,7 @@ class WmConsent extends Tags
         $class = $this->params->get('class');
 
         return '<a href="#cookie-einstellungen" data-wm-consent-open'.($class ? ' class="'.e($class).'"' : '').'>'
-            .($this->isPair ? $this->parse() : 'Cookie-Einstellungen').'</a>';
+            .($this->isPair ? $this->parse() : e(Lang::get('link', Lang::code(Site::current()->lang())))).'</a>';
     }
 
     public function script(): string

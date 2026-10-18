@@ -9,14 +9,16 @@
 import * as CookieConsent from 'vanilla-cookieconsent';
 import '@orestbida/iframemanager';
 import { SERVICES, CATEGORIES, ownCookies } from './services.js';
-import { texts } from './texts.js';
+import { texts, language, localize } from './texts.js';
 
 const configElement = document.getElementById('wm-consent-config');
 const config = configElement ? JSON.parse(configElement.textContent || '{}') : {};
 
 /** Dienste dieser Seite: eingetragen plus vom Ausgabefilter gefunden. */
 const serviceKeys = [...new Set([...(config.services || []), ...(config.detected || [])])].filter((key) => SERVICES[key]);
-const t = texts(config.texts || {}, config);
+/** Sprache der Seite (lang: Kürzel für eigene Texte, base: Sprache der Standardtexte). */
+const lang = language(config);
+const t = texts(config.texts || {}, config, lang);
 
 /** Eigene Einträge der Seite (Einstellung `cookies`, beim Statamic-Addon samt Session- und XSRF-Cookie). */
 const siteCookies = Array.isArray(config.cookies) ? config.cookies : [];
@@ -28,13 +30,13 @@ const iframes = window.iframemanager();
 const mediaServices = serviceKeys.filter((key) => SERVICES[key].category === 'media' && !SERVICES[key].widget);
 
 iframes.run({
-    currLang: 'de',
+    currLang: lang.lang,
     services: Object.fromEntries(mediaServices.map((key) => [key, {
         embedUrl: '{data-id}',
         iframe: { allow: 'accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen; clipboard-write' },
         cookie: { name: `wm_consent_${key}` },
         languages: {
-            de: {
+            [lang.lang]: {
                 notice: t.placeholder(SERVICES[key].label),
                 loadBtn: config.loadOnce ? t.loadOnce : '',
                 loadAllBtn: t.loadAlways,
@@ -59,7 +61,7 @@ CookieConsent.run({
         preferencesModal: { layout: 'box', equalWeightButtons: true, flipButtons: false },
     },
     categories: categories(),
-    language: { default: 'de', translations: { de: translation() } },
+    language: { default: lang.lang, translations: { [lang.lang]: translation() } },
     onConsent: syncAll,
     onChange: syncAll,
 });
@@ -127,7 +129,7 @@ function translation() {
             continue;
         }
 
-        sections.push({ title: info.title, description: info.description + list, linkedCategory: category });
+        sections.push({ title: localize(info.title, lang), description: localize(info.description, lang) + list, linkedCategory: category });
     }
 
     sections.push({ title: t.moreTitle, description: t.more });
@@ -147,7 +149,7 @@ function translation() {
             acceptNecessaryBtn: t.acceptNecessary,
             savePreferencesBtn: t.save,
             closeIconLabel: t.close,
-            serviceCounterLabel: 'Dienst|Dienste',
+            serviceCounterLabel: t.serviceCounter,
             sections,
         },
     };
@@ -158,7 +160,7 @@ function translation() {
  * dazu die Cookies des Banners.
  */
 function cookieList(category) {
-    const own = category === 'necessary' ? ownCookies(Number(config.cookieDays || 182), mediaServices, (key) => SERVICES[key].label) : [];
+    const own = category === 'necessary' ? ownCookies(Number(config.cookieDays || 182), mediaServices, (key) => SERVICES[key].label, t.loadAlways) : [];
     const groups = [];
     const websiteCookies = [...own, ...siteCookies.filter((cookie) => (cookie.category || 'necessary') === category && !cookie.provider)];
 
@@ -186,15 +188,15 @@ function cookieList(category) {
  */
 function cookieGroup(group) {
     const storage = { local: 'Local Storage', session: 'Session Storage' };
-    const privacy = group.privacy ? `<a href="${escapeHtml(group.privacy)}" target="_blank" rel="noopener">Datenschutz</a>` : '';
-    const meta = [group.provider ? escapeHtml(group.provider) : '', privacy].filter(Boolean).join(' · ');
+    const privacy = group.privacy ? `<a href="${escapeHtml(group.privacy)}" target="_blank" rel="noopener">${escapeHtml(t.privacy)}</a>` : '';
+    const meta = [group.provider ? escapeHtml(localize(group.provider, lang)) : '', privacy].filter(Boolean).join(' · ');
     const rows = group.cookies.map((cookie) => {
-        const badges = [cookie.duration, storage[cookie.type]].filter((value) => value && value !== '–')
+        const badges = [localize(cookie.duration, lang), storage[cookie.type]].filter((value) => value && value !== '–')
             .map((value) => `<span class="wm-cookie-badge">${escapeHtml(value)}</span>`).join('');
-        const name = cookie.name && cookie.name !== '–' ? `<span class="wm-cookie-name">${escapeHtml(cookie.name)}</span>` : '';
+        const name = cookie.name && cookie.name !== '–' ? `<span class="wm-cookie-name">${escapeHtml(cookie.name + (cookie.more ? ` ${t.andOthers}` : ''))}</span>` : '';
 
         return `<span class="wm-cookie">${name || badges ? `<span class="wm-cookie-head">${name}${badges}</span>` : ''}`
-            + `<span class="wm-cookie-desc">${escapeHtml(cookie.description || '')}</span></span>`;
+            + `<span class="wm-cookie-desc">${escapeHtml(localize(cookie.description, lang))}</span></span>`;
     }).join('');
 
     return `<span class="wm-cookie-group"><span class="wm-cookie-service"><span class="wm-cookie-title">${escapeHtml(group.title)}</span>`
@@ -276,11 +278,12 @@ function applyTheme(theme, mode) {
     const fontSize = Math.max(16, Math.min(18, parseFloat(body.fontSize) || 16));
     const headingElement = document.querySelector('h1, h2, h3');
     const headingFont = headingElement ? window.getComputedStyle(headingElement).fontFamily : '';
+    const overlay = Math.max(0, Math.min(90, Number(config.overlayOpacity ?? 50)));
     style.setAttribute('data-wm-consent-theme', '');
     style.textContent = [
         `:root{--wm-consent-font:${body.fontFamily || 'inherit'};--wm-consent-font-size:${fontSize}px;--im-font-family:var(--wm-consent-font);--wm-consent-heading-font:${headingFont || 'inherit'};--wm-consent-blur:${Math.max(0, Math.min(30, Number(config.blurStrength ?? 8)))}px}`,
-        `:root{${variables(theme.light || {}, false)}}`,
-        `:root.cc--darkmode{${variables(theme.dark || {}, true)}}`,
+        `:root{${variables(theme.light || {}, false, overlay)}}`,
+        `:root.cc--darkmode{${variables(theme.dark || {}, true, overlay)}}`,
     ].join('');
     document.head.appendChild(style);
 
@@ -294,17 +297,20 @@ function applyTheme(theme, mode) {
     }
 }
 
-function variables(colors, dark) {
+/**
+ * Nur Hintergrund, Text und Akzent sind Farben; Nebenflächen, Nebentext, Linien und Schalter sind der Text mit
+ * Transparenz, die Fläche über der Seite die dunklere der beiden Farben mit `overlay` Prozent Deckkraft.
+ */
+function variables(colors, dark, overlay) {
     const bg = colors.background || (dark ? '#161a1c' : '#ffffff');
     const text = colors.text || (dark ? '#ebf3f6' : '#2c2f31');
     const accent = colors.highlight || '#14b8a6';
-    const onAccent = colors.highlightText || readableOn(accent);
-    const mix = (amount, base = bg, other = text) => `color-mix(in srgb, ${other} ${amount}%, ${base})`;
-    /* Grautöne der Seite, wenn angegeben (muted: Nebenflächen, mutedText: Nebentext, border: Linien), sonst gemischt. */
-    const muted = colors.muted || mix(8);
-    const mutedHover = colors.muted ? `color-mix(in srgb, ${text} 8%, ${colors.muted})` : mix(15);
-    const mutedText = colors.mutedText || mix(75);
-    const border = colors.border || mix(12);
+    const onAccent = readableOn(accent);
+    const tint = (amount) => `color-mix(in srgb, ${text} ${amount}%, transparent)`;
+    const muted = tint(8);
+    const mutedHover = tint(15);
+    const mutedText = tint(75);
+    const border = tint(12);
 
     return [
         `--cc-bg:${bg}`,
@@ -324,10 +330,10 @@ function variables(colors, dark) {
         `--cc-btn-secondary-hover-border-color:${mutedHover}`,
         `--cc-separator-border-color:${border}`,
         `--cc-toggle-on-bg:${accent}`,
-        `--cc-toggle-off-bg:${colors.mutedText || mix(35)}`,
+        `--cc-toggle-off-bg:${tint(35)}`,
         `--cc-toggle-on-knob-bg:${bg}`,
         `--cc-toggle-off-knob-bg:${bg}`,
-        `--cc-toggle-readonly-bg:${colors.muted ? mutedHover : mix(20)}`,
+        `--cc-toggle-readonly-bg:${tint(20)}`,
         `--cc-toggle-readonly-knob-bg:${bg}`,
         `--cc-section-category-border:${border}`,
         `--cc-cookie-category-block-bg:${muted}`,
@@ -340,8 +346,9 @@ function variables(colors, dark) {
         `--cc-footer-color:${mutedText}`,
         `--cc-footer-border-color:${border}`,
         `--cc-link-color:${text}`,
-        `--cc-overlay-bg:${colors.overlay || (dark ? 'rgba(0,0,0,.45)' : 'rgba(0,0,0,.3)')}`,
-        `--im-bg:${muted}`,
+        `--cc-overlay-bg:color-mix(in srgb, ${dark ? bg : text} ${overlay}%, transparent)`,
+        /* Platzhalter liegen auf der Seite, nicht auf dem Banner: Fläche deckend. */
+        `--im-bg:color-mix(in srgb, ${text} 8%, ${bg})`,
         `--im-color:${text}`,
         `--im-link-color:${text}`,
         `--im-link-hover-color:${mutedText}`,
@@ -354,7 +361,6 @@ function variables(colors, dark) {
         `--im-overlay-bg:transparent`,
         `--wm-consent-bg:${bg}`,
         `--wm-consent-text:${text}`,
-        `--wm-consent-heading:${colors.heading || text}`,
         `--wm-consent-accent:${accent}`,
         `--wm-consent-on-accent:${onAccent}`,
         `--wm-consent-muted:${muted}`,

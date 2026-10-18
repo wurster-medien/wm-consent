@@ -62,11 +62,10 @@
     padding-bottom: 0.9em;
 }
 
-/* Überschriften in der Überschriftenschrift der Seite (aus h1/h2/h3) und optional eigener Farbe (colors.*.heading). */
+/* Überschriften in der Überschriftenschrift der Seite (aus h1/h2/h3). */
 #cc-main .cm__title,
 #cc-main .pm__title {
     font-family: var(--wm-consent-heading-font, inherit);
-    color: var(--wm-consent-heading, var(--cc-primary-color));
 }
 
 #cc-main .pm__title {

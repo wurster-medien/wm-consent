@@ -4,6 +4,7 @@ namespace WursterMedien\Consent\Tests\Statamic;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
+use Statamic\Facades\Site;
 use Statamic\Facades\User;
 use Statamic\Testing\AddonTestCase;
 use WursterMedien\Consent\ServiceProvider;
@@ -38,7 +39,8 @@ class AddonTest extends AddonTestCase
         $this->assertStringContainsString('<script src="/wm-consent/wm-consent.js?v=', $html);
         $this->assertStringContainsString('"highlight":"#c2410c"', $html);
         $this->assertStringContainsString('data-wm-consent>', $html);
-        $this->assertStringContainsString('"name":"XSRF-TOKEN","description":"Schützt Formulare', $html);
+        $this->assertStringContainsString('"name":"XSRF-TOKEN","description":{"de":"Schützt Formulare', $html);
+        $this->assertStringContainsString('{"lang":"en",', $html);
         $this->assertStringContainsString('"name":"'.config('session.cookie').'"', $html);
     }
 
@@ -95,8 +97,8 @@ class AddonTest extends AddonTestCase
             'mode' => 'dark',
             'position' => 'middle center',
             'dark_background' => '#1e293b',
-            'dark_overlay' => 'rgba(51, 65, 85, .7)',
-            'text_title' => 'Cookies bei uns',
+            'overlay_opacity' => 70,
+            'text_en_title' => 'Cookies bei uns',
             'services' => ['youtube'],
             'cookies' => [['name' => 'warenkorb', 'type' => 'local', 'category' => 'necessary', 'duration' => 'bis zum Löschen', 'description' => 'Auswahl']],
             'reconsent' => true,
@@ -105,12 +107,59 @@ class AddonTest extends AddonTestCase
         $html = $this->render('{{ wm_consent }}');
         $this->assertStringContainsString('"mode":"dark","position":"middle center"', $html);
         $this->assertStringContainsString('"background":"#1e293b"', $html);
-        $this->assertStringContainsString('"overlay":"rgba(51, 65, 85, .7)"', $html);
+        $this->assertStringContainsString('"overlayOpacity":70', $html);
         $this->assertStringContainsString('"highlight":"#c2410c"', $html);
-        $this->assertStringContainsString('"title":"Cookies bei uns"', $html);
+        $this->assertStringContainsString('"texts":{"en":{"title":"Cookies bei uns"}}', $html);
         $this->assertStringContainsString('"revision":1', $html);
         $this->assertStringContainsString('"name":"warenkorb"', $html);
         $this->assertSame(['youtube'], app(Settings::class)->get('services'));
+    }
+
+    public function test_several_sites_get_their_own_links_analytics_and_texts_per_language(): void
+    {
+        Site::setSites([
+            'site1_de' => ['name' => 'Site 1', 'url' => '/', 'locale' => 'de_DE'],
+            'site1_en' => ['name' => 'Site 1 English', 'url' => '/en/', 'locale' => 'en_GB'],
+            'site2_fr' => ['name' => 'Site 2', 'url' => 'https://site2.test/', 'locale' => 'fr_FR'],
+        ]);
+        $this->actingAs(User::make()->email('agentur@kunde.test')->makeSuper()->save());
+
+        $this->get(cp_route('wm-consent.edit'))->assertOk();
+        $this->assertSame(['de', 'en', 'fr'], Settings::languages());
+        $this->assertArrayHasKey('sites', app(Settings::class)->blueprint()->contents()['tabs']);
+
+        $this->patchJson(cp_route('wm-consent.update'), [
+            ...app(Settings::class)->formValues(),
+            'text_de_title' => 'Ihre Daten',
+            'text_en_title' => 'Your data',
+            'site_site1_en_privacy_url' => '/en/privacy',
+            'site_site2_fr_google_analytics_id' => 'G-SITE2FR1',
+        ])->assertOk();
+
+        $this->assertSame(['site1_en' => ['privacy_url' => '/en/privacy'], 'site2_fr' => ['google_analytics_id' => 'G-SITE2FR1']], app(Settings::class)->get('sites'));
+        $this->assertSame('/en/privacy', app(Settings::class)->formValues()['site_site1_en_privacy_url']);
+
+        Site::setCurrent('site1_en');
+        $html = $this->render('{{ wm_consent }}');
+        $this->assertStringContainsString('{"lang":"en",', $html);
+        $this->assertStringContainsString('"privacyUrl":"/en/privacy"', $html);
+        $this->assertStringContainsString('"texts":{"de":{"title":"Ihre Daten"},"en":{"title":"Your data"}}', $html);
+        $this->assertStringNotContainsString('gtag/js', $html);
+        $this->assertSame('<a href="#cookie-einstellungen" data-wm-consent-open>Cookie settings</a>', $this->render('{{ wm_consent:link }}'));
+
+        Site::setCurrent('site2_fr');
+        $html = $this->render('{{ wm_consent }}');
+        $this->assertStringContainsString('{"lang":"fr",', $html);
+        $this->assertStringContainsString('"privacyUrl":"/datenschutz"', $html);
+        $this->assertStringContainsString('gtag/js?id=G-SITE2FR1', $html);
+    }
+
+    public function test_texts_saved_before_languages_show_up_in_the_main_language(): void
+    {
+        $this->app['files']->put(config('wm-consent.settings_path'), "texts:\n  title: 'Alter Titel'\n");
+
+        $this->assertSame('Alter Titel', app(Settings::class)->formValues()['text_en_title']);
+        $this->assertArrayNotHasKey('sites', app(Settings::class)->blueprint()->contents()['tabs']);
     }
 
     public function test_only_people_with_the_permission_open_the_page(): void

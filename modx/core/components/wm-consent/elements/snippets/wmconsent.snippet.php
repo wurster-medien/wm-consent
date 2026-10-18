@@ -16,10 +16,20 @@ if (isset($settings['enabled']) && ! $settings['enabled']) {
     return '';
 }
 
+/*
+ * Website = Kontext (sites.<kontext> im Chunk). Sprache: lang im Chunk, sonst der cultureKey, wenn der Kontext ihn
+ * selbst setzt (Babel & Co.), sonst <html lang> der Seite (im Skript).
+ */
+$settings['site'] = $modx->context->get('key');
+
+if (empty($settings['lang']) && ! empty($modx->context->config['cultureKey'])) {
+    $settings['lang'] = $modx->context->config['cultureKey'];
+}
+
 if (! isset($settings['auto_cookies']) || $settings['auto_cookies']) {
     $sessionName = (string) ($modx->getOption('session_name') ?: session_name() ?: 'PHPSESSID');
     $settings['cookies'] = array_merge(
-        [['name' => $sessionName, 'duration' => 'Ende der Sitzung', 'description' => 'Hält Ihre Sitzung auf dieser Website, z. B. für Formulare.']],
+        [['name' => $sessionName, 'duration' => \WursterMedien\Consent\Core\Lang::minutes(0), 'description' => \WursterMedien\Consent\Core\Lang::all('session')]],
         (array) ($settings['cookies'] ?? [])
     );
 }

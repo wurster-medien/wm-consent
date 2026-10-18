@@ -32,21 +32,45 @@
 | Schlüssel | Bedeutung |
 | --- | --- |
 | `mode` | `auto` (folgt dem System), `light` oder `dark` |
-| `colors.light` / `colors.dark` | `background`, `text`, `highlight` (Akzent), optional `highlight_text`, `muted` (Nebenflächen), `muted_text` (Nebentext), `border` (Linien), `overlay` (Farbe über der Seite, z. B. `rgba(51, 65, 85, .7)`), `heading` (Überschriften) |
+| `colors.light` / `colors.dark` | `background`, `text`, `highlight` (Akzent); Nebenflächen, Nebentext und Linien ergeben sich aus dem Text mit Transparenz |
+| `overlay_opacity` | Deckkraft der Fläche über der Seite in % (0–90, Standard 50), hell in Textfarbe, dunkel in Hintergrundfarbe |
 | `position` | `top`, `middle` oder `bottom` mit `left`, `center` oder `right`, z. B. `middle center` |
 | `blur` | Hintergrund unscharf und gesperrt bis zur Auswahl (Standard `true`) |
 | `blur_strength` | Stärke der Unschärfe in px, 0–30 (Standard 8) |
 | `privacy_url`, `imprint_url` | Links im Banner |
-| `texts` | einzelne Texte ersetzen, z. B. `{"title": "Ihre Privatsphäre"}` |
+| `texts` | einzelne Texte ersetzen: flach für alle Sprachen, z. B. `{"title": "Ihre Privatsphäre"}`, oder je Sprache, z. B. `{"de": {"title": "…"}, "en": {"title": "…"}}` |
+| `lang` | Sprache erzwingen (`de`, `en`, `fr` …); sonst `cultureKey` des Kontexts, wenn er ihn selbst setzt, sonst `<html lang>` |
+| `sites` | Werte je Kontext, die vorgehen: `lang`, `privacy_url`, `imprint_url`, `google_analytics_id`, `texts`, siehe unten |
 | `services` | Dienste immer zeigen, auch wenn der Filter sie nicht findet |
 | `google_analytics_id` | GA4-Mess-ID, wird erst nach Zustimmung geladen |
 | `consent_mode` | Google Consent Mode v2 (Standard `true`) |
 | `revision` | erhöhen, wenn alle neu gefragt werden sollen |
 | `floating_button` | runder Knopf unten links zum Wieder-Öffnen |
 | `load_once` | Platzhalter zusätzlich mit „Einmal laden“ (sonst nur „Immer laden“ in der Akzentfarbe) |
-| `cookies` | eigene Einträge der Cookie-Liste: `name`, `type` (`cookie`, `local`, `session`), `duration`, `description`, optional `category` und `provider` |
+| `cookies` | eigene Einträge der Cookie-Liste: `name`, `type` (`cookie`, `local`, `session`), `duration`, `description` (beide auch je Sprache, z. B. `{"de": "1 Tag", "en": "1 day"}`), optional `category` und `provider` |
 | `auto_cookies` | PHP-Session-Cookie von selbst in die Liste (Standard `true`) |
 | `enabled`, `filter` | `false` schaltet den Banner bzw. nur den Filter ab |
+
+## Mehrsprachig und mehrere Kontexte
+
+Der Banner spricht Deutsch, Englisch und Französisch (andere Sprachen: Englisch). Ein Chunk für alle Kontexte; was
+je Kontext abweicht, steht unter `sites` mit dem Kontext-Schlüssel. Leere Werte übernehmen die allgemeinen.
+
+```json
+{
+    "privacy_url": "/datenschutz",
+    "imprint_url": "/impressum",
+    "google_analytics_id": "G-AAAAAAAAAA",
+    "texts": { "de": { "title": "Ihre Privatsphäre" }, "en": { "title": "Your privacy" } },
+    "sites": {
+        "en": { "lang": "en", "privacy_url": "/en/privacy-policy", "imprint_url": "/en/legal-notice" },
+        "fr": { "lang": "fr", "privacy_url": "/fr/confidentialite", "imprint_url": "/fr/mentions-legales" }
+    }
+}
+```
+
+`lang` je Kontext nur nötig, wenn der Kontext keinen eigenen `cultureKey` hat und `<html lang>` im Template nicht
+stimmt. Bestehende Chunks ohne `sites` laufen unverändert weiter.
 
 ## Cookie-Liste
 

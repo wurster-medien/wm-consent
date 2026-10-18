@@ -5,6 +5,7 @@
  * „wmConsentConfig“ (JSON, Schlüssel wie in config/wm-consent.php des Statamic-Addons). Für MODX 2 und 3.
  */
 
+require_once __DIR__.'/src/Core/Lang.php';
 require_once __DIR__.'/src/Core/Services.php';
 require_once __DIR__.'/src/Core/HeadTag.php';
 require_once __DIR__.'/src/Core/OutputFilter.php';
