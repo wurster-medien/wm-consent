@@ -269,6 +269,8 @@
     font-size: 0.9em;
     font-weight: 500;
     min-height: 2.75em;
+    /* Beschriftung immer einzeilig („Nur notwendige“ brach in schmalen Boxen um). */
+    white-space: nowrap;
 }
 
 #cc-main .cm__btn::before {
