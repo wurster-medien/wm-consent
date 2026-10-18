@@ -1,12 +1,12 @@
 /**
  * Texte des Banners auf Deutsch (Sie), Englisch und Französisch (vous); andere Sprachen bekommen Englisch. Jede Seite
- * kann einzelne über `texts` ersetzen: `texts['*']` für alle Sprachen, `texts.<sprache>` nur für eine (HeadTag.php
+ * kann einzelne über `texts` ersetzen (Platzhalter wie in Antlers, z. B. {{ dienst }}): `texts['*']` für alle Sprachen, `texts.<sprache>` nur für eine (HeadTag.php
  * legt dabei die Texte der Website darüber). Links auf Datenschutz und Impressum kommen aus `privacyUrl` und
  * `imprintUrl`.
  */
 export const LANGUAGES = ['de', 'en', 'fr'];
 
-const DEFAULTS = {
+export const DEFAULTS = {
     de: {
         title: 'Ihre Privatsphäre',
         description: 'Wir nutzen Cookies und Dienste anderer Anbieter, um die Website zu verbessern und Inhalte wie Videos oder Karten zu zeigen. Sie entscheiden, was Sie zulassen; Ihre Auswahl können Sie jederzeit unter „Cookie-Einstellungen“ ändern.',
@@ -19,7 +19,7 @@ const DEFAULTS = {
         preferencesIntroTitle: 'Ihre Auswahl',
         preferencesIntro: 'Hier legen Sie fest, welche Dienste wir nutzen dürfen. Notwendige Cookies brauchen wir für den Betrieb, alles andere nur mit Ihrer Zustimmung.',
         moreTitle: 'Mehr erfahren',
-        more: 'Einzelheiten stehen in unserer {datenschutzerklaerung}.',
+        more: 'Einzelheiten stehen in unserer {{ datenschutzerklaerung }}.',
         privacyPolicy: 'Datenschutzerklärung',
         privacy: 'Datenschutz',
         imprint: 'Impressum',
@@ -27,7 +27,7 @@ const DEFAULTS = {
         loadAlways: 'Immer laden',
         reopen: 'Cookie-Einstellungen',
         thisWebsite: 'Diese Website',
-        placeholder: 'Dieser Inhalt kommt von {dienst}. Beim Laden erfährt {dienst} Ihre IP-Adresse.',
+        placeholder: 'Dieser Inhalt kommt von {{ dienst }}. Beim Laden erfährt {{ dienst }} Ihre IP-Adresse.',
         serviceCounter: 'Dienst|Dienste',
         andOthers: 'u. a.',
     },
@@ -43,7 +43,7 @@ const DEFAULTS = {
         preferencesIntroTitle: 'Your choice',
         preferencesIntro: 'Here you decide which services we may use. We need necessary cookies to run the website; everything else only with your consent.',
         moreTitle: 'Learn more',
-        more: 'You will find details in our {datenschutzerklaerung}.',
+        more: 'You will find details in our {{ datenschutzerklaerung }}.',
         privacyPolicy: 'privacy policy',
         privacy: 'Privacy',
         imprint: 'Legal notice',
@@ -51,7 +51,7 @@ const DEFAULTS = {
         loadAlways: 'Always load',
         reopen: 'Cookie settings',
         thisWebsite: 'This website',
-        placeholder: 'This content is provided by {dienst}. When it loads, {dienst} receives your IP address.',
+        placeholder: 'This content is provided by {{ dienst }}. When it loads, {{ dienst }} receives your IP address.',
         serviceCounter: 'service|services',
         andOthers: 'etc.',
     },
@@ -67,7 +67,7 @@ const DEFAULTS = {
         preferencesIntroTitle: 'Votre choix',
         preferencesIntro: 'Vous choisissez ici les services que nous pouvons utiliser. Les cookies nécessaires sont indispensables au fonctionnement du site ; tout le reste uniquement avec votre accord.',
         moreTitle: 'En savoir plus',
-        more: 'Vous trouverez les détails dans notre {datenschutzerklaerung}.',
+        more: 'Vous trouverez les détails dans notre {{ datenschutzerklaerung }}.',
         privacyPolicy: 'politique de confidentialité',
         privacy: 'Confidentialité',
         imprint: 'Mentions légales',
@@ -75,7 +75,7 @@ const DEFAULTS = {
         loadAlways: 'Toujours charger',
         reopen: 'Paramètres des cookies',
         thisWebsite: 'Ce site',
-        placeholder: 'Ce contenu est fourni par {dienst}. Lors du chargement, {dienst} reçoit votre adresse IP.',
+        placeholder: 'Ce contenu est fourni par {{ dienst }}. Lors du chargement, {{ dienst }} reçoit votre adresse IP.',
         serviceCounter: 'service|services',
         andOthers: 'etc.',
     },
@@ -110,10 +110,15 @@ export function texts(overrides, config, { lang, base }) {
     return {
         footer,
         ...merged,
-        more: merged.more.replaceAll('{datenschutzerklaerung}', policy),
-        placeholder: (service) => merged.placeholder.replaceAll('{dienst}', service).replaceAll('{service}', service)
+        more: fill(merged.more, { datenschutzerklaerung: policy }),
+        placeholder: (service) => fill(merged.placeholder, { dienst: service, service })
             + (config.privacyUrl ? ` ${link(config.privacyUrl, merged.privacy)}` : ''),
     };
+}
+
+/** Platzhalter wie in Antlers ({{ dienst }}, Leerzeichen egal); {dienst} aus älteren Texten geht auch. */
+function fill(text, values) {
+    return text.replace(/\{\{\s*(\w+)\s*\}\}|\{(\w+)\}/g, (match, antlers, plain) => values[antlers ?? plain] ?? match);
 }
 
 function escape(value) {

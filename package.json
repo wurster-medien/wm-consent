@@ -1,6 +1,7 @@
 {
   "name": "wm-consent",
   "private": true,
+  "type": "module",
   "description": "Cookie-Banner von Wurster Medien (Kern für Statamic und MODX)",
   "scripts": {
     "build": "node build.mjs"

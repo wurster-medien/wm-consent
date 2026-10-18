@@ -47,7 +47,7 @@
 | `revision` | erhöhen, wenn alle neu gefragt werden sollen |
 | `floating_button` | runder Knopf unten links zum Wieder-Öffnen |
 | `load_once` | Platzhalter zusätzlich mit „Einmal laden“ (sonst nur „Immer laden“ in der Akzentfarbe) |
-| `cookies` | eigene Einträge der Cookie-Liste: `name`, `type` (`cookie`, `local`, `session`), `duration`, `description` (beide auch je Sprache, z. B. `{"de": "1 Tag", "en": "1 day"}`), optional `category` und `provider` |
+| `cookies` | eigene Einträge der Cookie-Liste: `name`, `type` (`cookie`, `local`, `session`), `duration`, `description` (beide auch je Sprache, z. B. `{"de": "1 Tag", "en": "1 day"}`), optional `category`, `provider` und `privacy` (Link zum Datenschutz des Anbieters) |
 | `auto_cookies` | PHP-Session-Cookie von selbst in die Liste (Standard `true`) |
 | `enabled`, `filter` | `false` schaltet den Banner bzw. nur den Filter ab |
 

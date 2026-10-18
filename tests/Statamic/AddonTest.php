@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\View;
 use Statamic\Facades\Site;
 use Statamic\Facades\User;
 use Statamic\Testing\AddonTestCase;
+use WursterMedien\Consent\Detected;
 use WursterMedien\Consent\ServiceProvider;
 use WursterMedien\Consent\Settings;
 
@@ -21,6 +22,7 @@ class AddonTest extends AddonTestCase
         $app['config']->set('app.url', 'https://kunde.test');
         $app['config']->set('wm-consent.colors.light.highlight', '#c2410c');
         $app['config']->set('wm-consent.settings_path', dirname(__DIR__).'/__fixtures__/content/wm-consent.yaml');
+        $app['config']->set('wm-consent.detected_path', dirname(__DIR__).'/__fixtures__/storage/detected.json');
         $app['config']->set('statamic.editions.pro', true);
     }
 
@@ -28,6 +30,7 @@ class AddonTest extends AddonTestCase
     {
         $this->app['files']->deleteDirectory(self::views());
         $this->app['files']->delete(config('wm-consent.settings_path'));
+        $this->app['files']->delete(config('wm-consent.detected_path'));
 
         parent::tearDown();
     }
@@ -71,6 +74,37 @@ class AddonTest extends AddonTestCase
 
         $this->get('/wm-consent/wm-consent.js')->assertOk()->assertHeader('Cache-Control', 'immutable, max-age=31536000, public');
         $this->get('/wm-consent/geheim.php')->assertNotFound();
+    }
+
+    public function test_the_cookies_tab_lists_what_the_filter_found_until_it_is_reset(): void
+    {
+        $this->actingAs(User::make()->email('agentur@kunde.test')->makeSuper()->save());
+        $head = $this->render('{{ wm_consent }}');
+        Route::middleware('statamic.web')->get('/kontakt', fn () => response('<html><head>'.$head.'<script type="text/plain" data-category="marketing" data-service="linkedin" src="x.js"></script></head><body><iframe src="https://www.youtube.com/embed/abc"></iframe></body></html>'));
+        $this->moveCatchAllLast();
+
+        $overview = fn (): string => app(Settings::class)->blueprint()->field('cookie_overview')->config()['html'];
+        $this->assertStringContainsString('Noch keine Dienste gefunden', $overview());
+        $this->assertStringNotContainsString('YouTube', $overview());
+
+        $this->get('/kontakt')->assertOk();
+        $this->get('/kontakt')->assertOk();
+
+        $this->assertSame(['youtube', 'linkedin'], array_keys(app(Detected::class)->all()));
+        $this->assertSame(['url' => 'http://localhost/kontakt', 'last' => date('Y-m-d')], app(Detected::class)->all()['youtube']);
+        $html = $overview();
+        $this->assertStringContainsString('<strong>YouTube</strong>', $html);
+        $this->assertStringContainsString('gefunden auf <a href="http://localhost/kontakt" target="_blank" rel="noopener">/kontakt</a>', $html);
+        $this->assertStringContainsString('VISITOR_INFO1_LIVE, YSC', $html);
+        $this->assertStringContainsString('<strong>LinkedIn Insight</strong>', $html);
+        $this->assertStringContainsString('wm_consent_&lt;dienst&gt;', $html);
+        $this->assertStringContainsString('XSRF-TOKEN', $html);
+        $this->get(cp_route('wm-consent.edit'))->assertOk();
+
+        $this->patchJson(cp_route('wm-consent.update'), [...app(Settings::class)->formValues(), 'reset_detected' => true])->assertOk();
+
+        $this->assertSame([], app(Detected::class)->all());
+        $this->assertFileDoesNotExist(config('wm-consent.detected_path'));
     }
 
     public function test_switched_off_means_no_banner_and_no_filter(): void
@@ -127,6 +161,8 @@ class AddonTest extends AddonTestCase
         $this->get(cp_route('wm-consent.edit'))->assertOk();
         $this->assertSame(['de', 'en', 'fr'], Settings::languages());
         $this->assertArrayHasKey('sites', app(Settings::class)->blueprint()->contents()['tabs']);
+        $this->assertSame('Your privacy', app(Settings::class)->blueprint()->field('text_en_title')->config()['placeholder']);
+        $this->assertSame('Votre vie privée', app(Settings::class)->blueprint()->field('text_fr_title')->config()['placeholder']);
 
         $this->patchJson(cp_route('wm-consent.update'), [
             ...app(Settings::class)->formValues(),

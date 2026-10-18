@@ -5,12 +5,15 @@ namespace WursterMedien\Consent\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 use WursterMedien\Consent\Core\OutputFilter;
+use WursterMedien\Consent\Core\Services;
+use WursterMedien\Consent\Detected;
 use WursterMedien\Consent\Settings;
 
 /**
  * Blockt bekannte Tracker und Einbettungen im ausgelieferten HTML (OutputFilter), nur für HTML-Antworten der Seite
- * (Gruppe statamic.web, nicht im Control Panel).
+ * (Gruppe statamic.web, nicht im Control Panel). Was er findet, merkt sich Detected für die Übersicht im Control Panel.
  */
 class FilterOutput
 {
@@ -29,7 +32,19 @@ class FilterOutput
             return $response;
         }
 
-        $filtered = OutputFilter::filter($content);
+        ['html' => $filtered, 'detected' => $detected] = OutputFilter::process($content);
+
+        /* Für die Übersicht auch, was schon markiert war ({{ wm_consent:script service="…" }}, GA über die Mess-ID). */
+        preg_match_all('/\sdata-service="([a-z_]+)"/', $filtered, $marked);
+        $found = array_values(array_intersect(array_unique([...$detected, ...$marked[1]]), Services::keys()));
+
+        if ($found !== [] && $response->isSuccessful()) {
+            try {
+                app(Detected::class)->record($found, $request->url());
+            } catch (Throwable $e) {
+                report($e);
+            }
+        }
 
         if ($filtered !== $content) {
             $response->setContent($filtered);

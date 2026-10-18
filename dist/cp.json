@@ -1,0 +1,397 @@
+{
+ "categories": {
+  "necessary": "Notwendig",
+  "analytics": "Statistik",
+  "marketing": "Marketing",
+  "media": "Externe Medien"
+ },
+ "services": {
+  "google_analytics": {
+   "label": "Google Analytics",
+   "category": "analytics",
+   "provider": "Google Ireland Limited, Irland",
+   "cookies": [
+    {
+     "name": "_ga",
+     "duration": "2 Jahre",
+     "description": "Unterscheidet Besucher.",
+     "more": false
+    },
+    {
+     "name": "_ga_*",
+     "duration": "2 Jahre",
+     "description": "Hält den Stand der Sitzung fest.",
+     "more": false
+    }
+   ]
+  },
+  "google_tag_manager": {
+   "label": "Google Tag Manager",
+   "category": "analytics",
+   "provider": "Google Ireland Limited, Irland",
+   "cookies": [
+    {
+     "name": "–",
+     "duration": "–",
+     "description": "Setzt selbst keine Cookies, lädt aber die darin eingerichteten Dienste.",
+     "more": false
+    }
+   ]
+  },
+  "matomo": {
+   "label": "Matomo",
+   "category": "analytics",
+   "provider": "Betreiber dieser Website (eigener Server)",
+   "cookies": [
+    {
+     "name": "_pk_id*",
+     "duration": "13 Monate",
+     "description": "Unterscheidet Besucher.",
+     "more": false
+    },
+    {
+     "name": "_pk_ses*",
+     "duration": "30 Minuten",
+     "description": "Hält die Sitzung fest.",
+     "more": false
+    }
+   ]
+  },
+  "hotjar": {
+   "label": "Hotjar",
+   "category": "analytics",
+   "provider": "Hotjar Ltd., Malta",
+   "cookies": [
+    {
+     "name": "_hjSessionUser_*",
+     "duration": "1 Jahr",
+     "description": "Unterscheidet Besucher.",
+     "more": false
+    },
+    {
+     "name": "_hjSession_*",
+     "duration": "30 Minuten",
+     "description": "Hält die Sitzung fest.",
+     "more": false
+    }
+   ]
+  },
+  "clarity": {
+   "label": "Microsoft Clarity",
+   "category": "analytics",
+   "provider": "Microsoft Ireland Operations Ltd., Irland",
+   "cookies": [
+    {
+     "name": "_clck",
+     "duration": "1 Jahr",
+     "description": "Unterscheidet Besucher.",
+     "more": false
+    },
+    {
+     "name": "_clsk",
+     "duration": "1 Tag",
+     "description": "Fasst Seitenaufrufe zu einer Sitzung zusammen.",
+     "more": false
+    }
+   ]
+  },
+  "meta_pixel": {
+   "label": "Meta Pixel",
+   "category": "marketing",
+   "provider": "Meta Platforms Ireland Ltd., Irland",
+   "cookies": [
+    {
+     "name": "_fbp",
+     "duration": "3 Monate",
+     "description": "Erkennt Besucher für Werbung auf Facebook und Instagram wieder.",
+     "more": false
+    },
+    {
+     "name": "_fbc",
+     "duration": "3 Monate",
+     "description": "Merkt sich den Klick auf eine Anzeige.",
+     "more": false
+    }
+   ]
+  },
+  "linkedin": {
+   "label": "LinkedIn Insight",
+   "category": "marketing",
+   "provider": "LinkedIn Ireland Unlimited Company, Irland",
+   "cookies": [
+    {
+     "name": "li_sugr",
+     "duration": "3 Monate",
+     "description": "Ordnet Besuche einem LinkedIn-Mitglied zu.",
+     "more": false
+    },
+    {
+     "name": "bcookie",
+     "duration": "1 Jahr",
+     "description": "Erkennt den Browser wieder (linkedin.com).",
+     "more": false
+    },
+    {
+     "name": "lidc",
+     "duration": "1 Tag",
+     "description": "Wählt das Rechenzentrum (linkedin.com).",
+     "more": false
+    },
+    {
+     "name": "UserMatchHistory",
+     "duration": "30 Tage",
+     "description": "Abgleich für Werbung (linkedin.com).",
+     "more": false
+    }
+   ]
+  },
+  "google_ads": {
+   "label": "Google Ads",
+   "category": "marketing",
+   "provider": "Google Ireland Limited, Irland",
+   "cookies": [
+    {
+     "name": "_gcl_au",
+     "duration": "3 Monate",
+     "description": "Misst, ob ein Besuch aus einer Anzeige zu einer Anfrage führt.",
+     "more": false
+    }
+   ]
+  },
+  "tiktok": {
+   "label": "TikTok Pixel",
+   "category": "marketing",
+   "provider": "TikTok Technology Limited, Irland",
+   "cookies": [
+    {
+     "name": "_ttp",
+     "duration": "13 Monate",
+     "description": "Erkennt Besucher für Werbung auf TikTok wieder.",
+     "more": false
+    }
+   ]
+  },
+  "youtube": {
+   "label": "YouTube",
+   "category": "media",
+   "provider": "Google Ireland Limited, Irland",
+   "cookies": [
+    {
+     "name": "VISITOR_INFO1_LIVE, YSC",
+     "duration": "Sitzung bis 6 Monate",
+     "description": "Erst beim Abspielen, auf youtube.com/youtube-nocookie.com: Einstellungen und Statistik des Players.",
+     "more": true
+    }
+   ]
+  },
+  "vimeo": {
+   "label": "Vimeo",
+   "category": "media",
+   "provider": "Vimeo.com, Inc., USA",
+   "cookies": [
+    {
+     "name": "vuid",
+     "duration": "2 Jahre",
+     "description": "Erst beim Abspielen, auf vimeo.com: unterscheidet Zuschauer.",
+     "more": false
+    }
+   ]
+  },
+  "google_maps": {
+   "label": "Google Maps",
+   "category": "media",
+   "provider": "Google Ireland Limited, Irland",
+   "cookies": [
+    {
+     "name": "NID",
+     "duration": "bis 6 Monate",
+     "description": "Erst beim Laden der Karte, auf google.com: Einstellungen und Sicherheit.",
+     "more": true
+    }
+   ]
+  },
+  "instagram": {
+   "label": "Instagram",
+   "category": "media",
+   "provider": "Meta Platforms Ireland Ltd., Irland",
+   "cookies": [
+    {
+     "name": "ig_did, mid",
+     "duration": "bis 2 Jahre",
+     "description": "Erst beim Laden des Beitrags, auf instagram.com.",
+     "more": true
+    }
+   ]
+  },
+  "facebook": {
+   "label": "Facebook",
+   "category": "media",
+   "provider": "Meta Platforms Ireland Ltd., Irland",
+   "cookies": [
+    {
+     "name": "datr, fr",
+     "duration": "bis 2 Jahre",
+     "description": "Erst beim Laden des Inhalts, auf facebook.com.",
+     "more": true
+    }
+   ]
+  },
+  "calendly": {
+   "label": "Calendly",
+   "category": "media",
+   "provider": "Calendly LLC, USA",
+   "cookies": [
+    {
+     "name": "__cf_bm",
+     "duration": "bis 1 Jahr",
+     "description": "Erst beim Laden des Kalenders, auf calendly.com.",
+     "more": true
+    }
+   ]
+  },
+  "openstreetmap": {
+   "label": "OpenStreetMap",
+   "category": "media",
+   "provider": "OpenStreetMap Foundation, Vereinigtes Königreich",
+   "cookies": [
+    {
+     "name": "–",
+     "duration": "–",
+     "description": "Setzt in der Regel keine Cookies; beim Laden der Karte erfährt der Anbieter Ihre IP-Adresse.",
+     "more": false
+    }
+   ]
+  },
+  "tripadvisor": {
+   "label": "Tripadvisor",
+   "category": "media",
+   "provider": "Tripadvisor LLC, USA",
+   "cookies": [
+    {
+     "name": "TAUnique, PMC",
+     "duration": "2 Jahre",
+     "description": "Erst beim Laden der Bewertungen, auf tripadvisor.de/.com: erkennen den Browser wieder.",
+     "more": false
+    },
+    {
+     "name": "TADCID",
+     "duration": "10 Jahre",
+     "description": "Auf tripadvisor.de/.com: Kennung des Browsers.",
+     "more": false
+    },
+    {
+     "name": "TASession, TASID, TATravelInfo, TAUD, TART",
+     "duration": "Sitzung bis 6 Monate",
+     "description": "Auf tripadvisor.de/.com: Sitzung, Sicherheit und Einstellungen.",
+     "more": true
+    }
+   ]
+  },
+  "holidaycheck": {
+   "label": "HolidayCheck",
+   "category": "media",
+   "provider": "HolidayCheck AG, Schweiz",
+   "cookies": [
+    {
+     "name": "internal_traffic",
+     "duration": "bis 2038",
+     "description": "Erst beim Laden der Bewertungen, auf holidaycheck.de: kennzeichnet interne Zugriffe.",
+     "more": false
+    },
+    {
+     "name": "mobile_detected",
+     "duration": "Sitzung",
+     "description": "Auf holidaycheck.de: merkt sich, ob ein Mobilgerät erkannt wurde.",
+     "more": false
+    }
+   ]
+  },
+  "wellness_hotel": {
+   "label": "wellness-hotel.info",
+   "category": "media",
+   "provider": "thematica GmbH, Österreich",
+   "cookies": [
+    {
+     "name": "–",
+     "duration": "–",
+     "description": "Setzt beim Laden der Bewertungen keine Cookies; der Anbieter erfährt Ihre IP-Adresse.",
+     "more": false
+    }
+   ]
+  }
+ },
+ "texts": {
+  "de": {
+   "title": "Ihre Privatsphäre",
+   "description": "Wir nutzen Cookies und Dienste anderer Anbieter, um die Website zu verbessern und Inhalte wie Videos oder Karten zu zeigen. Sie entscheiden, was Sie zulassen; Ihre Auswahl können Sie jederzeit unter „Cookie-Einstellungen“ ändern.",
+   "acceptAll": "Alle akzeptieren",
+   "acceptNecessary": "Nur notwendige",
+   "showPreferences": "Einstellungen",
+   "save": "Auswahl speichern",
+   "close": "Schließen",
+   "preferencesTitle": "Cookie-Einstellungen",
+   "preferencesIntroTitle": "Ihre Auswahl",
+   "preferencesIntro": "Hier legen Sie fest, welche Dienste wir nutzen dürfen. Notwendige Cookies brauchen wir für den Betrieb, alles andere nur mit Ihrer Zustimmung.",
+   "moreTitle": "Mehr erfahren",
+   "more": "Einzelheiten stehen in unserer {{ datenschutzerklaerung }}.",
+   "privacyPolicy": "Datenschutzerklärung",
+   "privacy": "Datenschutz",
+   "imprint": "Impressum",
+   "loadOnce": "Einmal laden",
+   "loadAlways": "Immer laden",
+   "reopen": "Cookie-Einstellungen",
+   "thisWebsite": "Diese Website",
+   "placeholder": "Dieser Inhalt kommt von {{ dienst }}. Beim Laden erfährt {{ dienst }} Ihre IP-Adresse.",
+   "serviceCounter": "Dienst|Dienste",
+   "andOthers": "u. a."
+  },
+  "en": {
+   "title": "Your privacy",
+   "description": "We use cookies and services from other providers to improve this website and to show content such as videos or maps. You decide what you allow; you can change your choice at any time under “Cookie settings”.",
+   "acceptAll": "Accept all",
+   "acceptNecessary": "Necessary only",
+   "showPreferences": "Settings",
+   "save": "Save selection",
+   "close": "Close",
+   "preferencesTitle": "Cookie settings",
+   "preferencesIntroTitle": "Your choice",
+   "preferencesIntro": "Here you decide which services we may use. We need necessary cookies to run the website; everything else only with your consent.",
+   "moreTitle": "Learn more",
+   "more": "You will find details in our {{ datenschutzerklaerung }}.",
+   "privacyPolicy": "privacy policy",
+   "privacy": "Privacy",
+   "imprint": "Legal notice",
+   "loadOnce": "Load once",
+   "loadAlways": "Always load",
+   "reopen": "Cookie settings",
+   "thisWebsite": "This website",
+   "placeholder": "This content is provided by {{ dienst }}. When it loads, {{ dienst }} receives your IP address.",
+   "serviceCounter": "service|services",
+   "andOthers": "etc."
+  },
+  "fr": {
+   "title": "Votre vie privée",
+   "description": "Nous utilisons des cookies et des services d’autres fournisseurs pour améliorer ce site et afficher des contenus comme des vidéos ou des cartes. Vous décidez de ce que vous autorisez ; vous pouvez modifier votre choix à tout moment sous « Paramètres des cookies ».",
+   "acceptAll": "Tout accepter",
+   "acceptNecessary": "Nécessaires uniquement",
+   "showPreferences": "Paramètres",
+   "save": "Enregistrer la sélection",
+   "close": "Fermer",
+   "preferencesTitle": "Paramètres des cookies",
+   "preferencesIntroTitle": "Votre choix",
+   "preferencesIntro": "Vous choisissez ici les services que nous pouvons utiliser. Les cookies nécessaires sont indispensables au fonctionnement du site ; tout le reste uniquement avec votre accord.",
+   "moreTitle": "En savoir plus",
+   "more": "Vous trouverez les détails dans notre {{ datenschutzerklaerung }}.",
+   "privacyPolicy": "politique de confidentialité",
+   "privacy": "Confidentialité",
+   "imprint": "Mentions légales",
+   "loadOnce": "Charger une fois",
+   "loadAlways": "Toujours charger",
+   "reopen": "Paramètres des cookies",
+   "thisWebsite": "Ce site",
+   "placeholder": "Ce contenu est fourni par {{ dienst }}. Lors du chargement, {{ dienst }} reçoit votre adresse IP.",
+   "serviceCounter": "service|services",
+   "andOthers": "etc."
+  }
+ }
+}

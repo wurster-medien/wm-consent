@@ -176,8 +176,9 @@ final class HeadTag
 
     /**
      * Eigene Einträge der Seite für die Cookie-Liste (zusätzlich zu den Vorlagen der Dienste): name, description,
-     * duration (beide als Text oder je Sprache), optional provider, category (Standard necessary) und type (cookie,
-     * local = Local Storage, session = Session Storage). Ohne Namen fällt ein Eintrag weg, jeder Name einmal.
+     * duration (beide als Text oder je Sprache), optional provider mit privacy (Link zu dessen Datenschutz, http(s) oder
+     * /pfad), category (Standard necessary) und type (cookie, local = Local Storage, session = Session Storage). Ohne
+     * Namen fällt ein Eintrag weg, jeder Name einmal.
      *
      * @param  array<int, mixed>  $cookies
      * @return list<array<string, mixed>>
@@ -199,14 +200,21 @@ final class HeadTag
                 continue;
             }
 
+            $provider = mb_substr(trim((string) ($cookie['provider'] ?? '')), 0, 100);
+            $privacy = trim(is_scalar($cookie['privacy'] ?? null) ? (string) $cookie['privacy'] : '');
+
             $result[$name] = [
                 'name' => mb_substr($name, 0, 100),
                 'description' => self::localized($cookie['description'] ?? '', 500),
                 'duration' => self::localized($cookie['duration'] ?? '', 60),
-                'provider' => mb_substr(trim((string) ($cookie['provider'] ?? '')), 0, 100),
+                'provider' => $provider,
                 'category' => in_array($category, Services::CATEGORIES, true) ? $category : 'necessary',
                 'type' => in_array($type, ['cookie', 'local', 'session'], true) ? $type : 'cookie',
             ];
+
+            if ($provider !== '' && preg_match('#^(https?://|/(?!/))#i', $privacy) === 1) {
+                $result[$name]['privacy'] = mb_substr($privacy, 0, 300);
+            }
         }
 
         return array_values($result);

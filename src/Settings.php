@@ -25,7 +25,7 @@ class Settings
     public const COLORS = ['background', 'text', 'highlight'];
 
     /** Texte, die das Formular ersetzen lässt (Schlüssel wie in resources/js/texts.js). */
-    public const TEXTS = ['title' => 'Titel', 'description' => 'Text im Banner', 'acceptAll' => 'Knopf „Alle akzeptieren“', 'acceptNecessary' => 'Knopf „Nur notwendige“', 'showPreferences' => 'Knopf „Einstellungen“', 'placeholder' => 'Platzhalter bei Videos und Karten ({dienst} = Name des Dienstes)'];
+    public const TEXTS = ['title' => 'Titel', 'description' => 'Text im Banner', 'acceptAll' => 'Knopf „Alle akzeptieren“', 'acceptNecessary' => 'Knopf „Nur notwendige“', 'showPreferences' => 'Knopf „Einstellungen“', 'placeholder' => 'Platzhalter bei Videos und Karten'];
 
     /** Was jede Site im Tab „Websites“ selbst festlegen kann (HeadTag::SITE_KEYS); leer heißt: Wert aus „Allgemein“. */
     public const SITE_FIELDS = ['privacy_url' => 'Link Datenschutz', 'imprint_url' => 'Link Impressum', 'google_analytics_id' => 'Google Analytics (Mess-ID)'];
@@ -80,7 +80,7 @@ class Settings
         }
 
         $settings['cookies'] = array_values(array_map(
-            fn (array $cookie): array => array_filter(array_intersect_key($cookie, array_flip(['name', 'type', 'category', 'duration', 'description', 'provider'])), fn (mixed $value): bool => $value !== null && $value !== ''),
+            fn (array $cookie): array => array_filter(array_intersect_key($cookie, array_flip(['name', 'type', 'category', 'duration', 'description', 'provider', 'privacy'])), fn (mixed $value): bool => $value !== null && $value !== ''),
             array_filter((array) ($values['cookies'] ?? []), 'is_array'),
         ));
 
@@ -117,6 +117,10 @@ class Settings
         $settings['sites'] = array_filter($settings['sites'], fn (mixed $values): bool => is_array($values) && $values !== []) ?: null;
         $settings['revision'] = (int) $this->get('revision', 0) + (! empty($values['reconsent']) ? 1 : 0);
 
+        if (! empty($values['reset_detected'])) {
+            app(Detected::class)->clear();
+        }
+
         File::ensureDirectoryExists(dirname($this->path()));
         File::put($this->path(), YAML::dump(array_filter($settings, fn (mixed $value): bool => $value !== null)));
         $this->cached = null;
@@ -132,6 +136,7 @@ class Settings
         $settings = $this->all();
         $values = array_intersect_key($settings, array_flip(self::PLAIN));
         $values['reconsent'] = false;
+        $values['reset_detected'] = false;
 
         foreach (['light', 'dark'] as $mode) {
             foreach (self::COLORS as $color) {
@@ -199,36 +204,61 @@ class Settings
                     ['handle' => 'overlay_opacity', 'field' => ['type' => 'range', 'display' => 'Abdunkeln (%)', 'instructions' => 'Solange der Banner offen ist. Hell in der Textfarbe, dunkel in der Hintergrundfarbe.', 'min' => 0, 'max' => 90, 'step' => 5, 'default' => 50, 'width' => 50]],
                 ]],
             ]],
-            'cookies' => ['display' => 'Cookies', 'sections' => [[
-                'fields' => [
-                    ['handle' => 'auto_cookies', 'field' => ['type' => 'toggle', 'display' => 'Session- und XSRF-Cookie von selbst eintragen']],
+            'cookies' => ['display' => 'Cookies', 'sections' => [
+                ['display' => 'Von selbst in der Liste', 'instructions' => 'Was der Banner ohne eigene Einträge zeigt: gefundene Dienste mit ihren Cookies, dazu Banner, Session und XSRF.', 'fields' => [
+                    ['handle' => 'cookie_overview', 'field' => ['type' => 'html', 'display' => 'Übersicht', 'hide_display' => true, 'html' => app(CookieOverview::class)->html()]],
+                    ['handle' => 'auto_cookies', 'field' => ['type' => 'toggle', 'display' => 'Session- und XSRF-Cookie von selbst eintragen', 'width' => 50]],
+                    ['handle' => 'reset_detected', 'field' => ['type' => 'toggle', 'display' => 'Gefundene Dienste beim Speichern vergessen', 'instructions' => 'Z. B. nachdem ein Dienst von der Website entfernt wurde. Die Liste füllt sich beim Aufruf der Seiten neu.', 'width' => 50]],
+                ]],
+                ['display' => 'Eigene Einträge', 'instructions' => 'Was die Seite selbst speichert und oben fehlt, z. B. einen Warenkorb im Local Storage. Finden: Seite mit `#wm-consent-inventar` öffnen, die Browser-Konsole listet alles Unbeschriebene.', 'fields' => [
                     ['handle' => 'cookies', 'field' => [
                         'type' => 'grid',
                         'display' => 'Eigene Einträge',
-                        'instructions' => 'Was die Seite selbst speichert (z. B. Warenkorb im Local Storage). Dienste wie Google Analytics bringen ihre Cookies selbst mit. Finden: Seite mit #wm-consent-inventar öffnen, die Browser-Konsole listet alles Unbeschriebene.',
+                        'hide_display' => true,
                         'mode' => 'stacked',
+                        'fullscreen' => false,
                         'add_row' => 'Eintrag hinzufügen',
                         'fields' => [
-                            ['handle' => 'name', 'field' => ['type' => 'text', 'display' => 'Name', 'validate' => ['required'], 'width' => 33]],
-                            ['handle' => 'type', 'field' => ['type' => 'select', 'display' => 'Art', 'options' => ['cookie' => 'Cookie', 'local' => 'Local Storage', 'session' => 'Session Storage'], 'default' => 'cookie', 'width' => 33]],
-                            ['handle' => 'category', 'field' => ['type' => 'select', 'display' => 'Kategorie', 'options' => ['necessary' => 'Notwendig', 'analytics' => 'Statistik', 'marketing' => 'Marketing', 'media' => 'Externe Medien'], 'default' => 'necessary', 'width' => 33]],
-                            ['handle' => 'duration', 'field' => ['type' => 'text', 'display' => 'Dauer', 'width' => 33]],
-                            ['handle' => 'provider', 'field' => ['type' => 'text', 'display' => 'Anbieter', 'instructions' => 'Leer: diese Website.', 'width' => 66]],
-                            ['handle' => 'description', 'field' => ['type' => 'text', 'display' => 'Zweck']],
+                            ['handle' => 'name', 'field' => ['type' => 'text', 'display' => 'Name', 'placeholder' => 'z. B. warenkorb', 'validate' => ['required'], 'width' => 25]],
+                            ['handle' => 'type', 'field' => ['type' => 'select', 'display' => 'Art', 'options' => ['cookie' => 'Cookie', 'local' => 'Local Storage', 'session' => 'Session Storage'], 'default' => 'cookie', 'width' => 25]],
+                            ['handle' => 'category', 'field' => ['type' => 'select', 'display' => 'Kategorie', 'options' => ['necessary' => 'Notwendig', 'analytics' => 'Statistik', 'marketing' => 'Marketing', 'media' => 'Externe Medien'], 'default' => 'necessary', 'width' => 25]],
+                            ['handle' => 'duration', 'field' => ['type' => 'text', 'display' => 'Laufzeit', 'placeholder' => 'z. B. 1 Jahr, Sitzung', 'width' => 25]],
+                            ['handle' => 'description', 'field' => ['type' => 'text', 'display' => 'Zweck', 'placeholder' => 'Wofür die Seite es speichert', 'width' => 50]],
+                            ['handle' => 'provider', 'field' => ['type' => 'text', 'display' => 'Anbieter', 'placeholder' => 'Diese Website', 'width' => 25]],
+                            ['handle' => 'privacy', 'field' => ['type' => 'text', 'input_type' => 'url', 'display' => 'Datenschutz des Anbieters', 'placeholder' => 'https://…', 'if' => ['provider' => 'not empty'], 'width' => 25]],
                         ],
                     ]],
-                ],
-            ]]],
-            'texts' => ['display' => 'Texte', 'sections' => array_map(fn (string $lang): array => [
-                'display' => count(self::languages()) > 1 ? (Lang::LANGUAGES[$lang] ?? strtoupper($lang)) : null,
-                'instructions' => 'Leer lassen für die Standardtexte'.(isset(Lang::LANGUAGES[$lang]) ? '.' : ' (für diese Sprache auf Englisch).'),
-                'fields' => array_map(fn (string $key, string $label): array => [
-                    'handle' => "text_{$lang}_{$key}",
-                    'field' => ['type' => $key === 'description' || $key === 'placeholder' ? 'textarea' : 'text', 'display' => $label],
-                ], array_keys(self::TEXTS), self::TEXTS),
-            ], self::languages())],
+                ]],
+            ]],
+            'texts' => ['display' => 'Texte', 'sections' => array_map(fn (string $lang): array => $this->textSection($lang), self::languages())],
             ...(count(self::sites()) > 1 ? ['sites' => ['display' => 'Websites', 'sections' => $this->siteSections()]] : []),
         ]]);
+    }
+
+    /**
+     * Texte einer Sprache: Titel und Text, die drei Knöpfe in einer Reihe, der Platzhalter; der Standardtext steht grau
+     * im leeren Feld.
+     *
+     * @return array<string, mixed>
+     */
+    private function textSection(string $lang): array
+    {
+        $buttons = ['acceptAll', 'acceptNecessary', 'showPreferences'];
+
+        return [
+            'display' => count(self::languages()) > 1 ? (Lang::LANGUAGES[$lang] ?? strtoupper($lang)) : 'Texte im Banner',
+            'instructions' => 'Leer lassen: Es gilt der grau angezeigte Standardtext'.(isset(Lang::LANGUAGES[$lang]) ? '.' : ' (für diese Sprache auf Englisch).'),
+            'fields' => array_map(fn (string $key, string $label): array => [
+                'handle' => "text_{$lang}_{$key}",
+                'field' => array_filter([
+                    'type' => $key === 'description' ? 'textarea' : 'text',
+                    'display' => $label,
+                    'placeholder' => Catalog::text($key, $lang),
+                    'instructions' => $key === 'placeholder' ? '`{{ dienst }}` wird zum Namen des Dienstes, z. B. YouTube.' : null,
+                    'width' => in_array($key, $buttons, true) ? 33 : 100,
+                ]),
+            ], array_keys(self::TEXTS), self::TEXTS),
+        ];
     }
 
     /**

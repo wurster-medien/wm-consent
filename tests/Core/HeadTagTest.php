@@ -60,6 +60,9 @@ class HeadTagTest extends TestCase
                 ['name' => 'warenkorb', 'description' => 'doppelt'],
                 ['name' => '', 'description' => 'ohne Namen'],
                 ['name' => 'tracker', 'category' => 'erfunden', 'type' => 'datenbank'],
+                ['name' => 'shop_id', 'provider' => 'Shopanbieter GmbH', 'privacy' => 'https://shop.example/datenschutz'],
+                ['name' => 'boese', 'provider' => 'Böse AG', 'privacy' => 'javascript:alert(1)'],
+                ['name' => 'eigen', 'privacy' => 'https://ohne-anbieter.example'],
                 'kein Eintrag',
             ],
         ]);
@@ -68,6 +71,9 @@ class HeadTagTest extends TestCase
         $this->assertSame([
             ['name' => 'warenkorb', 'description' => 'Auswahl', 'duration' => 'bis zum Löschen', 'provider' => '', 'category' => 'necessary', 'type' => 'local'],
             ['name' => 'tracker', 'description' => '', 'duration' => '', 'provider' => '', 'category' => 'necessary', 'type' => 'cookie'],
+            ['name' => 'shop_id', 'description' => '', 'duration' => '', 'provider' => 'Shopanbieter GmbH', 'category' => 'necessary', 'type' => 'cookie', 'privacy' => 'https://shop.example/datenschutz'],
+            ['name' => 'boese', 'description' => '', 'duration' => '', 'provider' => 'Böse AG', 'category' => 'necessary', 'type' => 'cookie'],
+            ['name' => 'eigen', 'description' => '', 'duration' => '', 'provider' => '', 'category' => 'necessary', 'type' => 'cookie'],
         ], $config['cookies']);
     }
 

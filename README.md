@@ -22,9 +22,10 @@ php artisan vendor:publish --tag=wm-consent-config   # config/wm-consent.php: Fa
 ```
 
 Einstellungen im Control Panel unter **Werkzeuge → Cookie-Banner** (Recht „Cookie-Banner verwalten“, Statamic 5 und
-6): Allgemein (an/aus, Darstellung, Position, Unschärfe, Links, GA-ID, Dienste), Farben (hell/dunkel), Cookies (eigene
-Einträge), Texte. Gespeichert in `content/wm-consent.yaml` (mit der Seite im Git), `config/wm-consent.php` ist nur die
-Voreinstellung. „Beim Speichern alle neu fragen“ erhöht die Revision.
+6): Allgemein (an/aus, Darstellung, Position, Unschärfe, Links, GA-ID, Dienste), Farben (hell/dunkel), Cookies (Übersicht,
+was der Banner von selbst zeigt, und eigene Einträge), Texte. Gespeichert in `content/wm-consent.yaml` (mit der Seite im Git), `config/wm-consent.php` ist nur die
+Voreinstellung. „Beim Speichern alle neu fragen“ erhöht die Revision. Welche Dienste der Filter beim Aufruf der Seiten
+findet, steht in `storage/wm-consent/detected.json` (für die Übersicht, nicht im Git).
 
 Im Layout:
 
@@ -88,7 +89,8 @@ php tools/build-modx.php          # build/wm-consent-modx.zip
 `demo/index.html` zeigt den Banner mit Beispiel-Einstellungen (Datei im Browser öffnen, nach `npm run build`).
 
 Neue Dienste in `src/Core/Services.php` (Muster) **und** `resources/js/services.js` (Name, Kategorie, Cookies)
-eintragen, im Kundenbereich ggf. in `WebsiteSignals::SERVICES`.
+eintragen, dann `npm run build` (auch für `dist/cp.json`, Daten fürs Control Panel), im Kundenbereich
+ggf. in `WebsiteSignals::SERVICES`.
 
 ## Bewusst nicht drin
 

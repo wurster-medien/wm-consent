@@ -13,6 +13,9 @@ return [
     /* Was im Control Panel (Werkzeuge → Cookie-Banner) gespeichert ist; geht vor den Werten in dieser Datei. */
     'settings_path' => base_path('content/wm-consent.yaml'),
 
+    /* Welche Dienste der Filter auf der Website gefunden hat (Übersicht im Tab „Cookies“), nicht im Git. */
+    'detected_path' => storage_path('wm-consent/detected.json'),
+
     /* Bekannte Tracker und Einbettungen beim Ausliefern blockieren (src/Core/OutputFilter.php). */
     'filter' => true,
 

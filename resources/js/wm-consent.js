@@ -170,7 +170,12 @@ function cookieList(category) {
 
     for (const cookie of siteCookies.filter((cookie) => (cookie.category || 'necessary') === category && cookie.provider)) {
         const group = groups.find((entry) => entry.title === cookie.provider);
-        group ? group.cookies.push(cookie) : groups.push({ title: cookie.provider, provider: '', privacy: '', cookies: [cookie] });
+        if (group) {
+            group.cookies.push(cookie);
+            group.privacy ||= cookie.privacy || '';
+        } else {
+            groups.push({ title: cookie.provider, provider: '', privacy: cookie.privacy || '', cookies: [cookie] });
+        }
     }
 
     for (const key of serviceKeys.filter((key) => SERVICES[key].category === category)) {

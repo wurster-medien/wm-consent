@@ -34,6 +34,7 @@ class ServiceProvider extends AddonServiceProvider
 
         $this->mergeConfigFrom(__DIR__.'/../config/wm-consent.php', 'wm-consent');
         $this->app->scoped(Settings::class);
+        $this->app->scoped(Detected::class);
         $this->app->singleton(StatamicVersion::class);
     }
 
