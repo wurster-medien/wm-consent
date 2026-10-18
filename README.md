@@ -38,7 +38,9 @@ Im Layout:
 ```
 
 - Bekannte Tracker und Einbettungen (auch im Bard-Inhalt) blockt die Middleware von selbst; das Ergebnis landet so
-  auch im statischen Cache.
+  auch im statischen Cache. Das gilt auch für Skripte und iframes, die ein Lazy-Loader der Seite erst später lädt
+  (`data-lazy-src` u. ä.): sie warten dann auf die Zustimmung statt auf das Scrollen. Bewertungs-Widgets (Tripadvisor,
+  HolidayCheck, wellness-hotel.info) laufen unter „Externe Medien“.
 - Eigene Skripte: `{{ wm_consent:script service="linkedin" }}<script>…</script>{{ /wm_consent:script }}` oder
   `category="analytics|marketing|media"`.
 - Google Analytics über `google_analytics_id` in der Config (bzw. `WM_CONSENT_GA_ID`), das eigene GA-Snippet dann

@@ -8,9 +8,10 @@ namespace WursterMedien\Consent\Core;
  *
  * - Skripte bekannter Dienste (Services::SCRIPTS) werden type="text/plain" mit data-category und data-service; der
  *   Banner führt sie nach Zustimmung aus. Ausgenommen: schon markierte, nicht ausführbare (JSON …) und alles mit
- *   data-wm-consent-ignore.
- * - iframes bekannter Dienste (Services::FRAMES) werden Platzhalter für iframemanager (div data-service mit der
- *   Adresse als data-id), YouTube über youtube-nocookie.com.
+ *   data-wm-consent-ignore. Steht die Adresse nur in einem Attribut für einen Lazy-Loader der Seite (data-lazy-src
+ *   …), wird sie zum src, damit der Lazy-Loader das Skript nicht ohne Zustimmung lädt.
+ * - iframes bekannter Dienste (Services::FRAMES, Adresse auch aus data-lazy-src …) werden Platzhalter für
+ *   iframemanager (div data-service mit der Adresse als data-id), YouTube über youtube-nocookie.com.
  * - <noscript> mit dem Tag Manager fällt weg (lädt sonst ohne Zustimmung, wenn JavaScript aus ist).
  *
  * Die gefundenen Dienste trägt der Filter in die Einstellungen des Kopf-Tags ein (`detected`), damit der Banner genau
@@ -49,7 +50,9 @@ final class OutputFilter
                 return $match[0];
             }
 
-            $service = Services::forScript((string) self::attribute($attributes, 'src'), $match[2]);
+            $src = (string) self::attribute($attributes, 'src');
+            $lazy = $src === '' ? self::lazySource($attributes) : null;
+            $service = Services::forScript($src !== '' ? $src : ($lazy[1] ?? ''), $match[2]);
 
             if ($service === null) {
                 return $match[0];
@@ -57,6 +60,10 @@ final class OutputFilter
 
             $detected[] = $service;
             $attributes = self::withoutAttribute($attributes, 'type');
+
+            if ($lazy !== null) {
+                $attributes = self::withoutAttribute($attributes, $lazy[0]).' src="'.self::escape(html_entity_decode($lazy[1], ENT_QUOTES | ENT_HTML5, 'UTF-8')).'"';
+            }
 
             return '<script type="text/plain" data-category="'.Services::category($service).'" data-service="'.$service.'"'.$attributes.'>'.$match[2].'</script>';
         }, $html);
@@ -68,7 +75,8 @@ final class OutputFilter
                 return $match[0];
             }
 
-            $src = html_entity_decode((string) self::attribute($attributes, 'src'), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $src = (string) self::attribute($attributes, 'src');
+            $src = html_entity_decode($src !== '' && $src !== 'about:blank' ? $src : (self::lazySource($attributes)[1] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
             $service = $src !== '' ? Services::forFrame($src) : null;
 
             if ($service === null) {
@@ -145,6 +153,23 @@ final class OutputFilter
         }
 
         return $match[1] ?? $match[2] ?? $match[3];
+    }
+
+    /**
+     * Adresse, die ein Lazy-Loader der Seite später als src setzt (data-src, data-lazy-src, data-rocket-src …), als
+     * [Attribut, Wert]; null ohne.
+     *
+     * @return array{0: string, 1: string}|null
+     */
+    private static function lazySource(string $attributes): ?array
+    {
+        if (preg_match('/(?:^|\s)(data-[a-z0-9-]*src)\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s>]+))/i', $attributes, $match, PREG_UNMATCHED_AS_NULL) !== 1) {
+            return null;
+        }
+
+        $value = (string) ($match[2] ?? $match[3] ?? $match[4]);
+
+        return $value !== '' ? [$match[1], $value] : null;
     }
 
     private static function hasAttribute(string $attributes, string $name): bool

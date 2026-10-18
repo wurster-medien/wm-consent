@@ -50,6 +50,25 @@ class OutputFilterTest extends TestCase
         $this->assertSame(['youtube', 'google_maps'], $result['detected']);
     }
 
+    public function test_lazy_loaded_widgets_and_frames_wait_for_consent_instead_of_the_lazy_loader(): void
+    {
+        $html = '<div data-lazy-scripts>'
+            .'<script data-lazy-src="https://www.jscache.com/wejs?wtype=excellent&amp;uniq=453" data-loadtrk onload="this.loadtrk=true" data-no-defer="true"></script>'
+            .'<script data-lazy-src="https://www.holidaycheck.de/widgets?step=code" type="text/javascript"></script>'
+            .'<script src=https://wellness-hotel.info/ratingswidget.js?id=56627 async></script>'
+            .'<script data-lazy-src="/js/eigenes.js"></script>'
+            .'</div><iframe src="about:blank" data-lazy-src="https://www.youtube.com/embed/abc"></iframe>';
+
+        $result = OutputFilter::process($html);
+
+        $this->assertStringContainsString('<script type="text/plain" data-category="media" data-service="tripadvisor" data-loadtrk onload="this.loadtrk=true" data-no-defer="true" src="https://www.jscache.com/wejs?wtype=excellent&amp;uniq=453"></script>', $result['html']);
+        $this->assertStringContainsString('<script type="text/plain" data-category="media" data-service="holidaycheck" src="https://www.holidaycheck.de/widgets?step=code"></script>', $result['html']);
+        $this->assertStringContainsString('<script type="text/plain" data-category="media" data-service="wellness_hotel" src=https://wellness-hotel.info/ratingswidget.js?id=56627 async></script>', $result['html']);
+        $this->assertStringContainsString('<script data-lazy-src="/js/eigenes.js"></script>', $result['html']);
+        $this->assertStringContainsString('<div data-service="youtube" data-id="https://www.youtube-nocookie.com/embed/abc" data-autoscale></div>', $result['html']);
+        $this->assertSame(['tripadvisor', 'holidaycheck', 'wellness_hotel', 'youtube'], $result['detected']);
+    }
+
     public function test_frames_sized_by_their_class_keep_that_size(): void
     {
         $this->assertSame(

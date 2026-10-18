@@ -11,7 +11,9 @@ namespace WursterMedien\Consent\Core;
 final class Services
 {
     /**
-     * Skripte: Muster in src (externe) bzw. im Inhalt (eingebettete). Reihenfolge zählt, der erste Treffer gilt.
+     * Skripte: Muster in src (externe, auch data-lazy-src u. ä.) bzw. im Inhalt (eingebettete). Reihenfolge zählt, der
+     * erste Treffer gilt. Bewertungs-Widgets (Tripadvisor, HolidayCheck, wellness-hotel.info) laufen als „Externe
+     * Medien“ ohne Platzhalter.
      *
      * @var array<string, array{category: string, src: list<string>, inline: list<string>}>
      */
@@ -27,6 +29,9 @@ final class Services
         'tiktok' => ['category' => 'marketing', 'src' => ['analytics.tiktok.com'], 'inline' => ['analytics.tiktok.com']],
         'instagram' => ['category' => 'media', 'src' => ['instagram.com/embed.js'], 'inline' => []],
         'facebook' => ['category' => 'media', 'src' => ['connect.facebook.net'], 'inline' => []],
+        'tripadvisor' => ['category' => 'media', 'src' => ['jscache.com/wejs', 'tripadvisor.com/WidgetEmbed', 'tripadvisor.de/WidgetEmbed'], 'inline' => []],
+        'holidaycheck' => ['category' => 'media', 'src' => ['holidaycheck.de/widgets'], 'inline' => []],
+        'wellness_hotel' => ['category' => 'media', 'src' => ['wellness-hotel.info/ratingswidget'], 'inline' => []],
     ];
 
     /**
@@ -69,6 +74,9 @@ final class Services
         'facebook' => 'Facebook',
         'calendly' => 'Calendly',
         'openstreetmap' => 'OpenStreetMap',
+        'tripadvisor' => 'Tripadvisor',
+        'holidaycheck' => 'HolidayCheck',
+        'wellness_hotel' => 'wellness-hotel.info',
     ];
 
     public static function category(string $service): ?string

@@ -24,7 +24,8 @@ const siteCookies = Array.isArray(config.cookies) ? config.cookies : [];
 applyTheme(config.theme || {}, config.mode || 'auto');
 
 const iframes = window.iframemanager();
-const mediaServices = serviceKeys.filter((key) => SERVICES[key].category === 'media');
+/** Videos, Karten und Beiträge mit Platzhalter (iframemanager), ohne Widgets wie Bewertungen. */
+const mediaServices = serviceKeys.filter((key) => SERVICES[key].category === 'media' && !SERVICES[key].widget);
 
 iframes.run({
     currLang: 'de',
