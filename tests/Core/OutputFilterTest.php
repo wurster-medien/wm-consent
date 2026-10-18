@@ -24,6 +24,19 @@ class OutputFilterTest extends TestCase
         $this->assertSame(['google_analytics', 'meta_pixel'], $result['detected']);
     }
 
+    public function test_maps_drawn_by_javascript_wait_with_their_start_script(): void
+    {
+        $html = '<script src="https://maps.googleapis.com/maps/api/js?callback=Function.prototype&libraries=places&key=AIza" type="text/javascript" async defer></script>'
+            .'<div id="karte" style="width: 100%; height: 100%;"></div>'
+            .'<script>window.addEventListener("load", function() { let map = new google.maps.Map(document.getElementById("karte"), {}); });</script>';
+
+        $result = OutputFilter::process($html);
+
+        $this->assertStringContainsString('<script type="text/plain" data-category="media" data-service="google_maps" src="https://maps.googleapis.com/maps/api/js?callback=Function.prototype&libraries=places&key=AIza" async defer></script>', $result['html']);
+        $this->assertStringContainsString('<div id="karte" style="width: 100%; height: 100%;"></div><script type="text/plain" data-category="media" data-service="google_maps">window.addEventListener("load"', $result['html']);
+        $this->assertSame(['google_maps'], $result['detected']);
+    }
+
     public function test_marked_ignored_and_data_scripts_stay_as_they_are(): void
     {
         $html = '<script data-wm-consent-ignore>gtag("consent","default",{});</script>'

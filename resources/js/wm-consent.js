@@ -51,6 +51,10 @@ iframes.run({
 });
 
 alwaysFirst();
+lateLoadEvents();
+
+/** Container von Karten per JavaScript, vor dem Start von CookieConsent gesucht (danach sind die Skripte ausgeführt). */
+const mapContainers = scriptMapContainers();
 
 CookieConsent.run({
     revision: Number(config.revision || 0),
@@ -76,6 +80,8 @@ CookieConsent.run({
         }
     },
 });
+
+mapPlaceholders();
 
 document.addEventListener('click', (event) => {
     const trigger = event.target instanceof Element ? event.target.closest('[data-wm-consent-open], a[href="#cookie-einstellungen"]') : null;
@@ -330,6 +336,73 @@ function syncAll() {
     }
 
     alwaysFirst();
+    mapPlaceholders();
+}
+
+/**
+ * Karten per JavaScript (Google Maps JavaScript API, z. B. Addon jezzdk/statamic-google-maps): Der Filter hält API und
+ * Start-Skript zurück (data-service="google_maps"). Der Container steht im Start-Skript (getElementById).
+ */
+function scriptMapContainers() {
+    const ids = new Set();
+
+    document.querySelectorAll('script[type="text/plain"][data-service="google_maps"]:not([src])').forEach((script) => {
+        for (const match of (script.textContent || '').matchAll(/getElementById\(\s*["']([^"']+)["']\s*\)/g)) {
+            ids.add(match[1]);
+        }
+    });
+
+    return [...ids].map((id) => document.getElementById(id)).filter(Boolean);
+}
+
+/** Platzhalter wie bei iframes in den Containern der Karten, bis Google Maps zugestimmt ist; „Immer laden“ stimmt zu. */
+function mapPlaceholders() {
+    const accepted = CookieConsent.acceptedService('google_maps', 'media');
+
+    for (const container of mapContainers) {
+        const box = container.querySelector(':scope > .wm-consent-map');
+
+        if (accepted || box) {
+            if (accepted && box) {
+                box.remove();
+            }
+
+            continue;
+        }
+
+        const placeholder = document.createElement('div');
+        placeholder.className = 'wm-consent-map';
+        placeholder.innerHTML = `<p>${t.placeholder(SERVICES.google_maps.label)}</p>`;
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = t.loadAlways;
+        button.addEventListener('click', () => CookieConsent.acceptService('google_maps', 'media'));
+        placeholder.appendChild(button);
+        container.appendChild(placeholder);
+    }
+}
+
+/**
+ * Skripte, die erst nach der Zustimmung laufen, melden sich oft noch für „load“ (window) bzw. „DOMContentLoaded“
+ * (document) an, etwa der Start einer Karte. Ist das Ereignis schon vorbei, laufen sie gleich, statt nie.
+ */
+function lateLoadEvents() {
+    const patch = (target, type, passed) => {
+        const original = target.addEventListener;
+
+        target.addEventListener = function (eventType, listener, options) {
+            if (eventType === type && listener && passed()) {
+                window.setTimeout(() => (typeof listener === 'function' ? listener.call(target, new Event(type)) : listener.handleEvent(new Event(type))), 0);
+
+                return;
+            }
+
+            return original.call(this || target, eventType, listener, options);
+        };
+    };
+
+    patch(window, 'load', () => document.readyState === 'complete');
+    patch(document, 'DOMContentLoaded', () => document.readyState !== 'loading');
 }
 
 /** In den Platzhaltern „Immer laden“ zuerst (auch für die Tastatur), „Einmal laden“ (load_once) danach. */

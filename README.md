@@ -42,6 +42,10 @@ Im Layout:
   auch im statischen Cache. Das gilt auch für Skripte und iframes, die ein Lazy-Loader der Seite erst später lädt
   (`data-lazy-src` u. ä.): sie warten dann auf die Zustimmung statt auf das Scrollen. Bewertungs-Widgets (Tripadvisor,
   HolidayCheck, wellness-hotel.info) laufen unter „Externe Medien“.
+- Karten per JavaScript (Google Maps JavaScript API, z. B. Addon `jezzdk/statamic-google-maps` mit `{{ map_script }}` und
+  `{{ map }}`) hält der Filter ebenfalls zurück, API und Start-Skript (`google.maps.…`). Der Container der Karte (aus
+  `getElementById` im Start-Skript) bekommt den Platzhalter wie bei iframes; nach „Immer laden“ startet die Karte ohne
+  Neuladen, auch wenn sich das Start-Skript für `load` angemeldet hat.
 - Eigene Skripte: `{{ wm_consent:script service="linkedin" }}<script>…</script>{{ /wm_consent:script }}` oder
   `category="analytics|marketing|media"`.
 - Google Analytics über `google_analytics_id` in der Config (bzw. `WM_CONSENT_GA_ID`), das eigene GA-Snippet dann
