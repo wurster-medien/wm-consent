@@ -56,11 +56,22 @@ class OutputFilterTest extends TestCase
         $result = OutputFilter::process($html);
 
         $this->assertStringContainsString('<div data-service="youtube" data-id="https://www.youtube-nocookie.com/embed/abc123?start=10" data-title="Unser Film" data-autoscale></div>', $result['html']);
-        $this->assertStringContainsString('<div data-service="google_maps" data-id="https://www.google.com/maps/embed?pb=!1m18&amp;x=1" class="map" style="height:450px"></div>', $result['html']);
+        $this->assertStringContainsString('<div data-service="google_maps" data-id="https://www.google.com/maps/embed?pb=!1m18&amp;x=1" class="map" style="width:100%;height:450px"></div>', $result['html']);
         $this->assertStringContainsString('<iframe src="/eigene-seite.html"></iframe>', $result['html']);
         $this->assertStringNotContainsString('ns.html', $result['html']);
         $this->assertStringContainsString('<noscript>Bitte JavaScript</noscript>', $result['html']);
         $this->assertSame(['youtube', 'google_maps'], $result['detected']);
+    }
+
+    public function test_map_placeholders_take_the_iframe_width_or_fill_their_container(): void
+    {
+        $html = '<div id="karte"><iframe src="https://www.google.com/maps/embed?pb=1"></iframe></div>'
+            .'<p class="right"><iframe src="https://www.google.com/maps/embed?pb=2" width="650" height="400"></iframe></p>';
+
+        $result = OutputFilter::process($html)['html'];
+
+        $this->assertStringContainsString('data-id="https://www.google.com/maps/embed?pb=1" style="width:100%;height:100%"></div>', $result);
+        $this->assertStringContainsString('data-id="https://www.google.com/maps/embed?pb=2" style="width:650px;max-width:100%;height:400px"></div>', $result);
     }
 
     public function test_lazy_loaded_widgets_and_frames_wait_for_consent_instead_of_the_lazy_loader(): void

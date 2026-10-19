@@ -117,7 +117,17 @@ final class OutputFilter
         $class = (string) self::attribute($attributes, 'class');
         $video = in_array($service, ['youtube', 'vimeo'], true);
         $sizedByClass = preg_match('/(^|\s)(h-full|h-screen|aspect-[^\s]+)(\s|$)/', $class) === 1;
-        $style = ! $video && ! $sizedByClass && preg_match('/^\d+$/', $height) === 1 ? ' style="height:'.$height.'px"' : '';
+        $style = '';
+
+        /*
+         * Ohne Attribute kam die Größe des iframes oft nur aus dem CSS der Seite (#karte iframe { width: 100% … }),
+         * das den Platzhalter nicht trifft: dann füllt er seinen Container statt 300 px in der Ecke (pfeifle-holz).
+         */
+        if (! $video && ! $sizedByClass) {
+            $width = (string) self::attribute($attributes, 'width');
+            $style = ' style="'.(preg_match('/^\d+$/', $width) === 1 ? 'width:'.$width.'px;max-width:100%' : 'width:100%')
+                .';height:'.(preg_match('/^\d+$/', $height) === 1 ? $height.'px' : '100%').'"';
+        }
 
         return '<div data-service="'.$service.'" data-id="'.self::escape($src).'"'
             .($title !== '' ? ' data-title="'.self::escape($title).'"' : '')
