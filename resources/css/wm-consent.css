@@ -684,3 +684,18 @@ div[data-service] .cll .c-la-b,
     width: 2.75rem !important;
     height: 2.75rem !important;
 }
+
+/* Kategorie-Zeilen in den Einstellungen sind auch Knöpfe; Zeilenhöhe der Seite (button { line-height: 40px !important }) gilt sonst überall. */
+#cc-main .pm__section-title {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 58px !important;
+    max-width: none !important;
+}
+
+#cc-main button,
+div[data-service] button,
+.wm-consent-map button,
+.wm-consent-reopen {
+    line-height: normal !important;
+}
