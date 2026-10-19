@@ -15,6 +15,22 @@
    `<a href="#cookie-einstellungen" data-wm-consent-open>Cookie-Einstellungen</a>`
 5. Alten Banner (CookieFirst o. Ä.) aus den Templates entfernen, Cache leeren.
 
+## Einspielen per SSH (ohne Manager)
+
+Das Paket enthält `wm-consent-site.php`. Paketordner als Benutzer der Seite hochladen (z. B. nach `~/wm-consent-pkg`), dann:
+
+```bash
+T="php ~/wm-consent-pkg/wm-consent-site.php --root=/home/kunde/kunde.de"
+$T info                                    # Version, Kontexte, Kopf-Chunks, alter Banner, Tracking
+$T install --config=~/site-config.json     # Dateien, Snippet, Plugin, Chunk wmConsentConfig
+$T head --only=chunk:START --apply         # [[!wmConsent]] in den <head> (nie in Mail-Vorlagen)
+$T get chunk JS > JS.html                  # ändern, dann:
+$T put chunk JS JS.html
+```
+
+Jede Änderung sichert vorher alle Chunks und Templates nach `~/wm-consent-backup/…` (`restore`, `uninstall`).
+Statische Elemente schreibt es in ihre Datei. Läuft mit MODX 2 und 3, auch bei halb aktualisierten Seiten.
+
 ## Was dann passiert
 
 - Das Plugin blockt bekannte Tracker (Google Analytics, Tag Manager, Meta Pixel, LinkedIn, Hotjar …) und macht

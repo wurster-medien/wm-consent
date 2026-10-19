@@ -48,6 +48,7 @@ $copy($root.'/dist/wm-consent.js', $target.'/assets/components/wm-consent/wm-con
 $copy($root.'/dist/wm-consent.css', $target.'/assets/components/wm-consent/wm-consent.css');
 $copy($root.'/modx/wmConsentConfig.example.json', $target.'/wmConsentConfig.example.json');
 $copy($root.'/modx/README.md', $target.'/README.md');
+$copy($root.'/modx/wm-consent-site.php', $target.'/wm-consent-site.php');
 
 $zipPath = $root.'/build/wm-consent-modx.zip';
 @unlink($zipPath);
