@@ -642,3 +642,45 @@ div[data-service] div.c-n-a .c-l-b:not(:only-child):hover {
 .wm-consent-reopen:focus-visible {
     background: var(--wm-consent-muted, #f1f3f4) !important;
 }
+
+/*
+ * Gegen globales CSS der Seite wie button { width: 32px !important } (kreidler): sonst schrumpfen die Knöpfe auf
+ * ihre Mindestbreite und die Beschriftung ist abgeschnitten. Textknöpfe nehmen ihre natürliche Größe (auf dem Handy
+ * strecken sie sich wie gewohnt), feste Knöpfe und Schalter die Maße aus CookieConsent bzw. von oben.
+ */
+#cc-main .cm__btn:not(.cm__btn--close),
+#cc-main .pm__btn,
+div[data-service] .cll .c-l-b,
+div[data-service] .cll .c-la-b,
+.wm-consent-map button {
+    width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+}
+
+#cc-main .cm__btn--close {
+    width: 42px !important;
+    height: 42px !important;
+}
+
+#cc-main .pm__close-btn {
+    width: 40px !important;
+    height: 40px !important;
+}
+
+#cc-main .section__toggle,
+#cc-main .section__toggle-wrapper {
+    width: 50px !important;
+    height: 23px !important;
+}
+
+#cc-main .toggle-service .section__toggle,
+#cc-main .toggle-service.section__toggle-wrapper {
+    width: 42px !important;
+    height: 19px !important;
+}
+
+.wm-consent-reopen {
+    width: 2.75rem !important;
+    height: 2.75rem !important;
+}
