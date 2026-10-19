@@ -27,6 +27,15 @@ was der Banner von selbst zeigt, und eigene Einträge), Texte. Gespeichert in `c
 Voreinstellung. „Beim Speichern alle neu fragen“ erhöht die Revision. Welche Dienste der Filter beim Aufruf der Seiten
 findet, steht in `storage/wm-consent/detected.json` (für die Übersicht, nicht im Git).
 
+**Voreinstellungen der Agentur für alle Seiten** (ab 1.2): [`defaults.json`](defaults.json) in diesem Repo (Branch
+`main`) gibt allgemeine Werte für alle Statamic-Seiten vor (`position`, `blur`, `blur_strength`, `overlay_opacity`,
+`floating_button`, `load_once`, `consent_mode`, `cookie_days`; nie Farben, Links oder Analytics). Ändern = Datei
+committen und pushen, die Seiten holen sie stündlich (`defaults_url`, `defaults_ttl`; ohne Antwort gilt der letzte
+Stand, ohne jeden Stand die Config). Reihenfolge: `config/wm-consent.php` < `defaults.json` < im Control Panel
+Gespeichertes. Das Control Panel speichert nur, was von der Voreinstellung abweicht, und stößt bei Statamic Git gleich
+einen Commit an. Beim Ausrollen von 1.2 auf eine Seite einmal `php please wm-consent:prune`: entfernt gespeicherte Werte,
+die der Voreinstellung gleichen (z. B. die Position, die am 20.10.2026 direkt auf den Servern gesetzt wurde).
+
 Im Layout:
 
 ```antlers

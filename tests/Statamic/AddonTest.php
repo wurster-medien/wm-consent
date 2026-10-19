@@ -2,6 +2,8 @@
 
 namespace WursterMedien\Consent\Tests\Statamic;
 
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Statamic\Facades\Site;
@@ -15,6 +17,9 @@ class AddonTest extends AddonTestCase
 {
     protected string $addonServiceProvider = ServiceProvider::class;
 
+    /** @var array<string, mixed>|false|null Antwort der Agentur-Voreinstellungen im Test, false = Fehler */
+    private array|false|null $agencyDefaults = null;
+
     protected function getEnvironmentSetUp($app)
     {
         parent::getEnvironmentSetUp($app);
@@ -24,6 +29,7 @@ class AddonTest extends AddonTestCase
         $app['config']->set('wm-consent.settings_path', dirname(__DIR__).'/__fixtures__/content/wm-consent.yaml');
         $app['config']->set('wm-consent.detected_path', dirname(__DIR__).'/__fixtures__/storage/detected.json');
         $app['config']->set('statamic.editions.pro', true);
+        $app['config']->set('wm-consent.defaults_url', null);
     }
 
     protected function tearDown(): void
@@ -198,6 +204,68 @@ class AddonTest extends AddonTestCase
         $this->assertArrayNotHasKey('sites', app(Settings::class)->blueprint()->contents()['tabs']);
     }
 
+    public function test_agency_defaults_go_over_the_config_but_not_over_saved_settings(): void
+    {
+        $this->agencyDefaults(['position' => 'middle center', 'blur_strength' => 12, 'privacy_url' => '/fremd', 'cookie_days' => 'viel']);
+
+        $html = $this->render('{{ wm_consent }}');
+        $this->assertStringContainsString('"position":"middle center"', $html);
+        $this->assertStringContainsString('"blurStrength":12', $html);
+        $this->assertStringNotContainsString('/fremd', $html);
+        $this->assertStringContainsString('"highlight":"#c2410c"', $html);
+
+        $this->actingAs(User::make()->email('agentur@kunde.test')->makeSuper()->save());
+        $this->patchJson(cp_route('wm-consent.update'), [...app(Settings::class)->formValues(), 'position' => 'top left'])->assertOk();
+
+        $this->assertSame('top left', app(Settings::class)->get('position'));
+        Http::assertSentCount(1);
+    }
+
+    public function test_saving_keeps_only_what_differs_so_later_agency_defaults_still_apply(): void
+    {
+        $this->agencyDefaults(['position' => 'middle center']);
+        $this->actingAs(User::make()->email('agentur@kunde.test')->makeSuper()->save());
+
+        $this->patchJson(cp_route('wm-consent.update'), [...app(Settings::class)->formValues(), 'mode' => 'dark'])->assertOk();
+
+        $stored = \Statamic\Facades\YAML::parse(file_get_contents(config('wm-consent.settings_path')));
+        $this->assertSame('dark', $stored['mode']);
+        $this->assertArrayNotHasKey('position', $stored);
+        $this->assertArrayNotHasKey('colors', $stored);
+
+        $this->app->forgetScopedInstances();
+        Cache::flush();
+        $this->agencyDefaults(['position' => 'bottom center']);
+        $this->assertSame('bottom center', app(Settings::class)->get('position'));
+    }
+
+    public function test_prune_removes_saved_values_equal_to_the_defaults(): void
+    {
+        $this->agencyDefaults(['position' => 'middle center']);
+        file_put_contents(config('wm-consent.settings_path'), "position: 'middle center'
+mode: dark
+colors:
+  light:
+    highlight: '#c2410c'
+");
+
+        $this->artisan('wm-consent:prune')->expectsOutput('2 Werte entfernt.')->assertSuccessful();
+
+        $this->assertSame(['mode' => 'dark'], \Statamic\Facades\YAML::parse(file_get_contents(config('wm-consent.settings_path'))));
+    }
+
+    public function test_without_answer_the_last_known_agency_defaults_stay(): void
+    {
+        $this->agencyDefaults(['position' => 'middle center']);
+        $this->assertSame('middle center', app(Settings::class)->get('position'));
+
+        Cache::put('wm-consent.agency-defaults', [...Cache::get('wm-consent.agency-defaults'), 'checked' => 0]);
+        $this->agencyDefaults = false;
+        $this->app->forgetScopedInstances();
+
+        $this->assertSame('middle center', app(Settings::class)->get('position'));
+    }
+
     public function test_only_people_with_the_permission_open_the_page(): void
     {
         $this->actingAs(User::make()->email('redaktion@kunde.test')->save());
@@ -205,6 +273,20 @@ class AddonTest extends AddonTestCase
         $this->assertContains($this->get(cp_route('wm-consent.edit'))->status(), [302, 403]);
         $this->assertContains($this->patchJson(cp_route('wm-consent.update'), ['mode' => 'dark'])->status(), [302, 401, 403]);
         $this->assertFileDoesNotExist(config('wm-consent.settings_path'));
+    }
+
+    /**
+     * @param  array<string, mixed>  $defaults
+     */
+    private function agencyDefaults(array $defaults): void
+    {
+        config(['wm-consent.defaults_url' => 'https://agentur.test/defaults.json']);
+
+        if ($this->agencyDefaults === null) {
+            Http::fake(['agentur.test/*' => fn () => $this->agencyDefaults === false ? Http::response('', 500) : Http::response($this->agencyDefaults)]);
+        }
+
+        $this->agencyDefaults = $defaults;
     }
 
     /** Wie eine echte View-Datei rendern (Antlers::parse() behandelt Text in Statamic 6 als Nutzerinhalt ohne Tags). */

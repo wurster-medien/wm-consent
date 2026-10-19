@@ -5,6 +5,7 @@ namespace WursterMedien\Consent;
 use Statamic\Facades\CP\Nav;
 use Statamic\Facades\Permission;
 use Statamic\Providers\AddonServiceProvider;
+use WursterMedien\Consent\Console\Prune;
 use WursterMedien\Consent\Http\Middleware\FilterOutput;
 use WursterMedien\Consent\Support\StatamicVersion;
 use WursterMedien\Consent\Tags\WmConsent;
@@ -21,6 +22,10 @@ class ServiceProvider extends AddonServiceProvider
         WmConsent::class,
     ];
 
+    protected $commands = [
+        Prune::class,
+    ];
+
     protected $routes = [
         'web' => __DIR__.'/../routes/web.php',
         'cp' => __DIR__.'/../routes/cp.php',
@@ -34,6 +39,7 @@ class ServiceProvider extends AddonServiceProvider
 
         $this->mergeConfigFrom(__DIR__.'/../config/wm-consent.php', 'wm-consent');
         $this->app->scoped(Settings::class);
+        $this->app->scoped(AgencyDefaults::class);
         $this->app->scoped(Detected::class);
         $this->app->singleton(StatamicVersion::class);
     }

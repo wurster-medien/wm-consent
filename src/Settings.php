@@ -5,17 +5,21 @@ namespace WursterMedien\Consent;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Statamic\Facades\Blueprint;
+use Statamic\Facades\Git;
 use Statamic\Facades\Site;
 use Statamic\Facades\YAML;
 use Statamic\Fields\Blueprint as StatamicBlueprint;
+use Throwable;
 use WursterMedien\Consent\Core\HeadTag;
 use WursterMedien\Consent\Core\Lang;
 use WursterMedien\Consent\Core\Services;
 
 /**
- * Einstellungen des Banners für diese Seite: config/wm-consent.php ist die Voreinstellung, was im Control Panel
- * („Cookie-Banner“) gespeichert ist, steht in content/wm-consent.yaml (`wm-consent.settings_path`, mit der Seite im
- * Git) und geht vor. Das Formular ist ein Blueprint mit flachen Feldern (light_background …, text_de_title …,
+ * Einstellungen des Banners für diese Seite: config/wm-consent.php ist die Voreinstellung, darüber die der Agentur für
+ * alle Seiten (AgencyDefaults, z. B. die Position), was im Control Panel („Cookie-Banner“) gespeichert ist, steht in
+ * content/wm-consent.yaml (`wm-consent.settings_path`, mit der Seite im Git) und geht vor. Gespeichert wird nur, was von
+ * der Voreinstellung abweicht, damit spätere Vorgaben der Agentur weiter greifen; danach stößt das Speichern bei
+ * Statamic Git einen Commit an (die Datei kommt sonst erst mit dem nächsten gespeicherten Eintrag ins Git). Das Formular ist ein Blueprint mit flachen Feldern (light_background …, text_de_title …,
  * site_<handle>_privacy_url …), die beim Speichern in die Struktur von HeadTag (colors, texts je Sprache, sites je
  * Statamic-Site) umgerechnet werden. Texte gibt es je Sprache der Sites, den Tab „Websites“ nur bei mehreren Sites.
  */
@@ -37,7 +41,7 @@ class Settings
     private ?array $cached = null;
 
     /**
-     * Voreinstellung aus der Config, darüber das Gespeicherte (Listen wie services und cookies ersetzen ganz).
+     * Voreinstellung (Config und Agentur), darüber das Gespeicherte (Listen wie services und cookies ersetzen ganz).
      *
      * @return array<string, mixed>
      */
@@ -47,7 +51,7 @@ class Settings
             return $this->cached;
         }
 
-        $settings = (array) config('wm-consent', []);
+        $settings = $this->defaults();
         $stored = $this->stored();
 
         foreach ($stored as $key => $value) {
@@ -65,6 +69,67 @@ class Settings
     }
 
     /**
+     * Was ohne Gespeichertes gilt: config/wm-consent.php, darüber die Voreinstellungen der Agentur.
+     *
+     * @return array<string, mixed>
+     */
+    public function defaults(): array
+    {
+        return array_replace((array) config('wm-consent', []), app(AgencyDefaults::class)->values());
+    }
+
+    /**
+     * Gespeicherte Werte entfernen, die der Voreinstellung gleichen (z. B. nach dem Ausrollen einer Agentur-Vorgabe), damit
+     * spätere Vorgaben wieder greifen. Gibt die Zahl der entfernten Werte zurück.
+     */
+    public function prune(): int
+    {
+        $stored = $this->stored();
+        $defaults = $this->defaults();
+        $removed = 0;
+
+        foreach (self::PLAIN as $key) {
+            if (array_key_exists($key, $stored) && $key !== 'cookies' && self::same($stored[$key], $defaults, $key)) {
+                unset($stored[$key]);
+                $removed++;
+            }
+        }
+
+        foreach (['light', 'dark'] as $mode) {
+            foreach (self::COLORS as $color) {
+                if (isset($stored['colors'][$mode][$color]) && self::same($stored['colors'][$mode][$color], (array) ($defaults['colors'][$mode] ?? []), $color)) {
+                    unset($stored['colors'][$mode][$color]);
+                    $removed++;
+                }
+            }
+        }
+
+        if ($removed > 0) {
+            $stored['colors'] = array_filter((array) ($stored['colors'] ?? []));
+            $this->write(array_filter($stored, fn (mixed $value): bool => $value !== null && $value !== []), 'Cookie-Banner: Voreinstellungen aufgeräumt');
+        }
+
+        return $removed;
+    }
+
+    /** Gleicht der Wert der Voreinstellung? Typen wie im Formular (Zahlen als Text, Schalter als 0/1) zählen gleich. */
+    private static function same(mixed $value, array $defaults, string $key): bool
+    {
+        if (! array_key_exists($key, $defaults)) {
+            return false;
+        }
+
+        $default = $defaults[$key];
+
+        return match (true) {
+            is_bool($default) => (bool) $value === $default,
+            is_int($default) => is_numeric($value) && (int) $value === $default,
+            is_array($default) => is_array($value) && array_values($value) === array_values($default),
+            default => (string) $value === (string) $default,
+        };
+    }
+
+    /**
      * Werte aus dem Formular speichern; „alle neu fragen“ erhöht die Revision.
      *
      * @param  array<string, mixed>  $values  verarbeitete Werte des Blueprints
@@ -72,9 +137,10 @@ class Settings
     public function saveForm(array $values): void
     {
         $settings = [];
+        $defaults = $this->defaults();
 
         foreach (self::PLAIN as $key) {
-            if (array_key_exists($key, $values)) {
+            if (array_key_exists($key, $values) && ($key === 'cookies' || ! self::same($values[$key], $defaults, $key))) {
                 $settings[$key] = $values[$key];
             }
         }
@@ -86,7 +152,7 @@ class Settings
 
         foreach (['light', 'dark'] as $mode) {
             foreach (self::COLORS as $color) {
-                if (filled($values["{$mode}_{$color}"] ?? null)) {
+                if (filled($values["{$mode}_{$color}"] ?? null) && ! self::same($values["{$mode}_{$color}"], (array) ($defaults['colors'][$mode] ?? []), $color)) {
                     $settings['colors'][$mode][$color] = (string) $values["{$mode}_{$color}"];
                 }
             }
@@ -121,9 +187,27 @@ class Settings
             app(Detected::class)->clear();
         }
 
+        $this->write(array_filter($settings, fn (mixed $value): bool => $value !== null), 'Cookie-Banner gespeichert');
+    }
+
+    /**
+     * Schreiben und, wenn Statamic Git an ist, einen Commit anstoßen (wie beim Speichern eines Eintrags).
+     *
+     * @param  array<string, mixed>  $settings
+     */
+    private function write(array $settings, string $message): void
+    {
         File::ensureDirectoryExists(dirname($this->path()));
-        File::put($this->path(), YAML::dump(array_filter($settings, fn (mixed $value): bool => $value !== null)));
+        File::put($this->path(), YAML::dump($settings));
         $this->cached = null;
+
+        if (config('statamic.git.enabled') && config('statamic.git.automatic', true)) {
+            try {
+                Git::dispatchCommit($message);
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+        }
     }
 
     /**

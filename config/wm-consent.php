@@ -13,6 +13,14 @@ return [
     /* Was im Control Panel (Werkzeuge → Cookie-Banner) gespeichert ist; geht vor den Werten in dieser Datei. */
     'settings_path' => base_path('content/wm-consent.yaml'),
 
+    /*
+     * Voreinstellungen der Agentur für alle Seiten (Position, Unschärfe …, nie Farben oder Links), gehen vor den Werten in
+     * dieser Datei, nicht vor dem im Control Panel Gespeicherten. Stündlich geholt; null schaltet ab.
+     */
+    'defaults_url' => env('WM_CONSENT_DEFAULTS_URL', \WursterMedien\Consent\AgencyDefaults::URL),
+
+    'defaults_ttl' => 3600,
+
     /* Welche Dienste der Filter auf der Website gefunden hat (Übersicht im Tab „Cookies“), nicht im Git. */
     'detected_path' => storage_path('wm-consent/detected.json'),
 
