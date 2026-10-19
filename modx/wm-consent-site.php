@@ -66,7 +66,9 @@ $modx->setLogLevel(1);
 $modx->setLogTarget('ECHO');
 
 /** Klassenname für MODX 2 bzw. 3. */
-$cls = fn (string $name): string => $v3 ? 'MODX\\Revolution\\'.$name : $name;
+$cls = function (string $name) use ($v3): string {
+    return $v3 ? 'MODX\\Revolution\\'.$name : $name;
+};
 
 $typeClass = function (string $type) use ($cls): string {
     if ($type !== 'chunk' && $type !== 'template') {
@@ -76,7 +78,9 @@ $typeClass = function (string $type) use ($cls): string {
     return $cls($type === 'chunk' ? 'modChunk' : 'modTemplate');
 };
 
-$nameField = fn (string $type): string => $type === 'template' ? 'templatename' : 'name';
+$nameField = function (string $type): string {
+    return $type === 'template' ? 'templatename' : 'name';
+};
 
 /** Inhalt eines Elements, bei statischen aus der Datei. */
 $contentOf = function ($element): string {
