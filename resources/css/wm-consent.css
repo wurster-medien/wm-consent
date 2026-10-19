@@ -531,3 +531,114 @@ div[data-service] .cll .c-la-b,
 .wm-consent-reopen {
     box-sizing: border-box;
 }
+
+/*
+ * Gegen globales CSS der Seite wie button, input { background: white !important; padding: … !important } (si-tech):
+ * sonst sind die Knöpfe leer (weiß auf weiß) und die Schalter in den Einstellungen so breit wie ihr Abstand. Gleiche
+ * Selektoren und Variablen wie CookieConsent, iframemanager und die Regeln oben, hier mit !important.
+ */
+#cc-main .cm__btn,
+#cc-main .pm__btn {
+    background: var(--cc-btn-primary-bg) !important;
+    border-color: var(--cc-btn-primary-border-color) !important;
+    color: var(--cc-btn-primary-color) !important;
+}
+
+#cc-main .cm__btn:hover,
+#cc-main .pm__btn:hover {
+    background: var(--cc-btn-primary-hover-bg) !important;
+    border-color: var(--cc-btn-primary-hover-border-color) !important;
+    color: var(--cc-btn-primary-hover-color) !important;
+}
+
+#cc-main .cm__btn--secondary,
+#cc-main .pm__btn--secondary,
+#cc-main .pm__close-btn {
+    background: var(--cc-btn-secondary-bg) !important;
+    border-color: var(--cc-btn-secondary-border-color) !important;
+    color: var(--cc-btn-secondary-color) !important;
+}
+
+#cc-main .cm__btn--secondary:hover,
+#cc-main .pm__btn--secondary:hover,
+#cc-main .pm__close-btn:hover {
+    background: var(--cc-btn-secondary-hover-bg) !important;
+    border-color: var(--cc-btn-secondary-hover-border-color) !important;
+    color: var(--cc-btn-secondary-hover-color) !important;
+}
+
+#cc-main .pm__section--toggle .pm__section-title {
+    background: var(--cc-cookie-category-block-bg) !important;
+}
+
+#cc-main .pm__section--toggle .pm__section-title:hover {
+    background: var(--cc-cookie-category-block-hover-bg) !important;
+}
+
+#cc-main .pm__section--toggle.is-expanded .pm__section-title,
+#cc-main .pm__section--toggle.is-expanded .pm__section-title:hover {
+    background: var(--wm-consent-open-head, color-mix(in srgb, #000 30%, var(--cc-bg))) !important;
+}
+
+#cc-main .section__toggle,
+#cc-main .section__toggle-wrapper {
+    padding: 0 !important;
+}
+
+#cc-main .section__toggle {
+    background: none !important;
+}
+
+div[data-service] .cll .c-l-b {
+    background: var(--im-btn-bg) !important;
+    color: var(--im-btn-color) !important;
+}
+
+div[data-service] .cll .c-l-b:hover {
+    background: var(--im-btn-hover-bg) !important;
+}
+
+div[data-service] .cll .c-la-b {
+    background: var(--im-btn-s-bg) !important;
+    color: var(--im-btn-s-color) !important;
+}
+
+div[data-service] .cll .c-la-b:hover {
+    background: var(--im-btn-s-hover-bg) !important;
+}
+
+div[data-service] div.c-n-a .c-la-b {
+    background: var(--im-btn-bg) !important;
+    color: var(--im-btn-color) !important;
+}
+
+div[data-service] div.c-n-a .c-la-b:hover {
+    background: var(--im-btn-hover-bg) !important;
+}
+
+div[data-service] div.c-n-a .c-l-b:not(:only-child) {
+    background: var(--im-btn-s-bg) !important;
+    color: var(--im-btn-s-color) !important;
+}
+
+div[data-service] div.c-n-a .c-l-b:not(:only-child):hover {
+    background: var(--im-btn-s-hover-bg) !important;
+}
+
+.wm-consent-map button {
+    background: var(--im-btn-bg) !important;
+    color: var(--im-btn-color) !important;
+}
+
+.wm-consent-map button:hover {
+    background: var(--im-btn-hover-bg) !important;
+}
+
+.wm-consent-reopen {
+    background: var(--wm-consent-bg, #fff) !important;
+}
+
+.wm-consent-reopen:hover,
+.wm-consent-reopen:focus-visible {
+    background: var(--wm-consent-muted, #f1f3f4) !important;
+}
