@@ -37,6 +37,13 @@ class OutputFilterTest extends TestCase
         $this->assertSame(['google_maps'], $result['detected']);
     }
 
+    public function test_the_old_maps_api_host_waits_as_well(): void
+    {
+        $html = '<script src="https://maps.google.com/maps/api/js?sensor=false"></script>';
+
+        $this->assertStringContainsString('<script type="text/plain" data-category="media" data-service="google_maps" src="https://maps.google.com/maps/api/js?sensor=false"></script>', OutputFilter::filter($html));
+    }
+
     public function test_marked_ignored_and_data_scripts_stay_as_they_are(): void
     {
         $html = '<script data-wm-consent-ignore>gtag("consent","default",{});</script>'

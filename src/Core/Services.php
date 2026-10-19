@@ -28,7 +28,7 @@ final class Services
         'google_ads' => ['category' => 'marketing', 'src' => ['googleadservices.com', 'googlesyndication.com', 'doubleclick.net'], 'inline' => ['googleadservices.com', 'googlesyndication.com']],
         'tiktok' => ['category' => 'marketing', 'src' => ['analytics.tiktok.com'], 'inline' => ['analytics.tiktok.com']],
         /* Karten per JavaScript (z. B. Addon jezzdk/statamic-google-maps): API und Start-Skript, Platzhalter im Container. */
-        'google_maps' => ['category' => 'media', 'src' => ['maps.googleapis.com/maps/api/js'], 'inline' => ['google.maps.']],
+        'google_maps' => ['category' => 'media', 'src' => ['maps.googleapis.com/maps/api/js', 'maps.google.com/maps/api/js'], 'inline' => ['google.maps.']],
         'instagram' => ['category' => 'media', 'src' => ['instagram.com/embed.js'], 'inline' => []],
         'facebook' => ['category' => 'media', 'src' => ['connect.facebook.net'], 'inline' => []],
         'tripadvisor' => ['category' => 'media', 'src' => ['jscache.com/wejs', 'tripadvisor.com/WidgetEmbed', 'tripadvisor.de/WidgetEmbed'], 'inline' => []],
