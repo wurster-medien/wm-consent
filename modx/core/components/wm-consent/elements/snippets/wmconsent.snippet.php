@@ -26,10 +26,12 @@ if (empty($settings['lang']) && ! empty($modx->context->config['cultureKey'])) {
     $settings['lang'] = $modx->context->config['cultureKey'];
 }
 
+/* Session-Cookie mit der Laufzeit aus MODX (session_cookie_lifetime in Sekunden, 0 = Ende der Sitzung). */
 if (! isset($settings['auto_cookies']) || $settings['auto_cookies']) {
     $sessionName = (string) ($modx->getOption('session_name') ?: session_name() ?: 'PHPSESSID');
+    $sessionMinutes = intdiv(max(0, (int) $modx->getOption('session_cookie_lifetime', null, 0)), 60);
     $settings['cookies'] = array_merge(
-        [['name' => $sessionName, 'duration' => \WursterMedien\Consent\Core\Lang::minutes(0), 'description' => \WursterMedien\Consent\Core\Lang::all('session')]],
+        [['name' => $sessionName, 'duration' => \WursterMedien\Consent\Core\Lang::minutes($sessionMinutes), 'description' => \WursterMedien\Consent\Core\Lang::all('session')]],
         (array) ($settings['cookies'] ?? [])
     );
 }

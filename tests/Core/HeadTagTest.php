@@ -132,5 +132,7 @@ class HeadTagTest extends TestCase
         $this->assertSame(['de' => '90 Minuten', 'en' => '90 minutes', 'fr' => '90 minutes'], Lang::minutes(90));
         $this->assertSame('1 Stunde', Lang::minutes(60)['de']);
         $this->assertSame('Fin de la session', Lang::minutes(0)['fr']);
+        $this->assertSame(['de' => '7 Tage', 'en' => '7 days', 'fr' => '7 jours'], Lang::minutes(10080));
+        $this->assertSame('1 Tag', Lang::minutes(1440)['de']);
     }
 }

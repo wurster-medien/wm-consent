@@ -54,7 +54,7 @@ final class Lang
     }
 
     /**
-     * Laufzeit in Minuten als Text in allen Sprachen (0: Ende der Sitzung).
+     * Laufzeit in Minuten als Text in allen Sprachen (0: Ende der Sitzung, ganze Tage als Tage).
      *
      * @return array<string, string>
      */
@@ -62,6 +62,12 @@ final class Lang
     {
         if ($minutes <= 0) {
             return self::TEXTS['end_of_session'];
+        }
+
+        if ($minutes % 1440 === 0) {
+            $days = intdiv($minutes, 1440);
+
+            return ['de' => $days.($days === 1 ? ' Tag' : ' Tage'), 'en' => $days.($days === 1 ? ' day' : ' days'), 'fr' => $days.($days === 1 ? ' jour' : ' jours')];
         }
 
         $hours = $minutes % 60 === 0 ? intdiv($minutes, 60) : null;
