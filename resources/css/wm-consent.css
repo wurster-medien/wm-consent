@@ -474,3 +474,60 @@ div[data-service] div.c-n-a .c-l-b:not(:only-child)::before {
 #cc-main .cm.cm--box .cm__btns {
     border-top: 0;
 }
+
+/*
+ * Gegen globales CSS der Seite: Regeln wie button { padding: … !important } (kabelmat) schlagen sonst auch die
+ * Selektoren mit #cc-main. Ohne diese Abstände ist der Schließen-Knopf leer, der Pfeil der Kategorie liegt über dem
+ * Titel und der Schalter über der Anzahl der Dienste. Werte wie in CookieConsent und iframemanager, hier mit !important.
+ */
+#cc-main .pm__close-btn,
+#cc-main .pm__section-title,
+.wm-consent-reopen {
+    padding: 0 !important;
+}
+
+#cc-main .pm__section--toggle .pm__section-title {
+    padding: 1.1em 5.4em 1.1em 1.2em !important;
+}
+
+#cc-main .pm__section--expandable .pm__section-title {
+    padding-left: 3.4em !important;
+}
+
+#cc-main.cc--rtl .pm__section--toggle .pm__section-title {
+    padding-left: 5.4em !important;
+    padding-right: 1.2em !important;
+}
+
+#cc-main.cc--rtl .pm__section--expandable .pm__section-title {
+    padding-right: 3.4em !important;
+}
+
+#cc-main .cm__btn:not(.cm__btn--close) {
+    padding: 0.5em 1em !important;
+}
+
+#cc-main .cm--box.cm--wide .cm__btn:not(.cm__btn--close),
+#cc-main .cm--bar .cm__btn:not(.cm__btn--close) {
+    padding-left: 1.8em !important;
+    padding-right: 1.8em !important;
+}
+
+#cc-main .pm__btn {
+    padding: 0.5em 1.5em !important;
+}
+
+div[data-service] .cll .c-l-b,
+div[data-service] .cll .c-la-b,
+.wm-consent-map button {
+    padding: 0.975em 1.1em !important;
+}
+
+/* Der Schalter ist ein label, das CookieConsent nicht zurücksetzt (Seiten-CSS gibt label oft Abstände). */
+#cc-main .section__toggle-wrapper {
+    margin: 0;
+}
+
+.wm-consent-reopen {
+    box-sizing: border-box;
+}
