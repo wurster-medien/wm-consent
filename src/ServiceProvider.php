@@ -13,7 +13,8 @@ use WursterMedien\Consent\Tags\WmConsent;
 /**
  * Cookie-Banner von Wurster Medien für Statamic 5 und 6: Tag {{ wm_consent }} für den <head>, Ausgabefilter in der
  * Gruppe statamic.web (innen, damit der statische Cache schon das gefilterte HTML speichert), Skript und Stylesheet
- * über eine eigene Route (kein Veröffentlichen nach Updates nötig), Einstellungen im Control Panel unter Werkzeuge →
+ * über eine eigene Route (kein Veröffentlichen nach Updates nötig, Stylesheet zentral über AgencyStyles), Versionen für
+ * den Kundenbereich über POST /wm-consent/status (StatusController), Einstellungen im Control Panel unter Werkzeuge →
  * „Cookie-Banner“ (Settings, gespeichert in content/wm-consent.yaml).
  */
 class ServiceProvider extends AddonServiceProvider
@@ -40,6 +41,7 @@ class ServiceProvider extends AddonServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../config/wm-consent.php', 'wm-consent');
         $this->app->scoped(Settings::class);
         $this->app->scoped(AgencyDefaults::class);
+        $this->app->scoped(AgencyStyles::class);
         $this->app->scoped(Detected::class);
         $this->app->singleton(StatamicVersion::class);
     }

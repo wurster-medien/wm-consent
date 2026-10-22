@@ -36,17 +36,21 @@ final class HeadTag
     public const SITE_KEYS = ['lang', 'privacy_url', 'imprint_url', 'google_analytics_id'];
 
     /**
+     * Das Stylesheet hat eine eigene Version ($styleVersion), wenn es zentral von der Agentur kommt (Statamic:
+     * AgencyStyles); ohne Angabe die des Skripts.
+     *
      * @param  array<string, mixed>  $settings
      */
-    public static function render(array $settings, string $assetUrl, ?string $version = null): string
+    public static function render(array $settings, string $assetUrl, ?string $version = null, ?string $styleVersion = null): string
     {
         $assetUrl = rtrim($assetUrl, '/');
+        $styleVersion = rawurlencode($styleVersion ?? $version ?? self::VERSION);
         $version = rawurlencode($version ?? self::VERSION);
         $settings = self::resolve($settings);
         $config = self::build($settings);
         $analyticsId = self::analyticsId($settings['google_analytics_id'] ?? null);
 
-        $html = '<link rel="stylesheet" href="'.self::escape($assetUrl.'/wm-consent.css?v='.$version).'" data-wm-consent-ignore>'."\n";
+        $html = '<link rel="stylesheet" href="'.self::escape($assetUrl.'/wm-consent.css?v='.$styleVersion).'" data-wm-consent-ignore>'."\n";
 
         if ($config['consentMode']) {
             $html .= '<script data-wm-consent-ignore>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}'

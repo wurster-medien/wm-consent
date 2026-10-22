@@ -10,6 +10,7 @@ use Statamic\Facades\Site;
 use Statamic\Facades\User;
 use Statamic\Testing\AddonTestCase;
 use WursterMedien\Consent\Detected;
+use WursterMedien\Consent\Http\Controllers\StatusController;
 use WursterMedien\Consent\ServiceProvider;
 use WursterMedien\Consent\Settings;
 
@@ -30,10 +31,14 @@ class AddonTest extends AddonTestCase
         $app['config']->set('wm-consent.detected_path', dirname(__DIR__).'/__fixtures__/storage/detected.json');
         $app['config']->set('statamic.editions.pro', true);
         $app['config']->set('wm-consent.defaults_url', null);
+        $app['config']->set('wm-consent.styles_url', null);
+        $app['config']->set('wm-consent.styles_path', dirname(__DIR__).'/__fixtures__/storage/styles/styles.css');
+        $app['config']->set('statamic.system.license_key', null);
     }
 
     protected function tearDown(): void
     {
+        $this->app['files']->deleteDirectory(dirname((string) config('wm-consent.styles_path')));
         $this->app['files']->deleteDirectory(self::views());
         $this->app['files']->delete(config('wm-consent.settings_path'));
         $this->app['files']->delete(config('wm-consent.detected_path'));
@@ -266,6 +271,68 @@ colors:
         $this->assertSame('middle center', app(Settings::class)->get('position'));
     }
 
+    public function test_the_stylesheet_comes_from_the_agency_and_is_served_by_the_site(): void
+    {
+        $central = "#cc-main{color:red}.cm{background:url(\"data:image/svg+xml,%3Csvg%3E\")}";
+        $answer = $central;
+        config(['wm-consent.styles_url' => 'https://agentur.test/styles.css']);
+        Http::fake(['agentur.test/*' => function () use (&$answer) {
+            return $answer === false ? Http::response('', 500) : Http::response($answer);
+        }]);
+
+        $html = $this->render('{{ wm_consent }}');
+        $version = 'c'.substr(md5($central), 0, 10);
+
+        $this->assertStringContainsString('<link rel="stylesheet" href="/wm-consent/wm-consent.css?v='.$version.'"', $html);
+        $this->assertStringNotContainsString('wm-consent.js?v='.$version, $html);
+        $response = $this->get('/wm-consent/wm-consent.css?v='.$version)->assertOk()->assertHeader('Cache-Control', 'immutable, max-age=31536000, public');
+        $this->assertSame($central, file_get_contents($response->baseResponse->getFile()->getPathname()));
+        /* Seite aus dem statischen Cache mit alter Version: nur kurz zwischenspeichern. */
+        $this->get('/wm-consent/wm-consent.css?v=alt')->assertOk()->assertHeader('Cache-Control', 'max-age=3600, public');
+
+        /* Unbrauchbares (fremde Adressen, @import) und Fehler ändern nichts, der letzte gute Stand bleibt. */
+        foreach (['#cc-main{background:url(https://tracker.test/pixel.gif)}', '@import "https://fremd.test/x.css";#cc-main{}', '<html>Fehler</html>', false] as $answer) {
+            $this->expireStyles();
+            $this->assertStringContainsString('wm-consent.css?v='.$version, $this->render('{{ wm_consent }}'));
+        }
+
+        /* Abgeschaltet: wieder das aus dem Paket. */
+        config(['wm-consent.styles_url' => null]);
+        $this->app->forgetScopedInstances();
+        $this->assertStringNotContainsString('wm-consent.css?v=c', $this->render('{{ wm_consent }}'));
+        $response = $this->get('/wm-consent/wm-consent.css')->assertOk();
+        $this->assertSame(realpath(dirname(__DIR__, 2).'/dist/wm-consent.css'), realpath($response->baseResponse->getFile()->getPathname()));
+    }
+
+    public function test_the_agency_reads_the_versions_only_with_a_valid_signature(): void
+    {
+        $this->post('/wm-consent/status')->assertNotFound();
+
+        config(['statamic.system.license_key' => 'lizenz-123']);
+        $time = time();
+        $signed = fn (string $key, int $timestamp) => ['X-WM-Timestamp' => (string) $timestamp, 'X-WM-Signature' => StatusController::signature($key, $timestamp)];
+
+        $this->post('/wm-consent/status', [], $signed('falsch', $time))->assertNotFound();
+        $this->post('/wm-consent/status', [], $signed('lizenz-123', $time - 900))->assertNotFound();
+        $this->get('/wm-consent/status', $signed('lizenz-123', $time))->assertNotFound();
+
+        $response = $this->post('/wm-consent/status', [], $signed('lizenz-123', $time))
+            ->assertOk()
+            ->assertHeader('Cache-Control', 'no-store, private')
+            ->assertJsonPath('statamic', \Statamic\Statamic::version())
+            ->assertJsonPath('edition', 'pro')
+            ->assertJsonPath('php', PHP_VERSION)
+            ->assertJsonPath('styles.central', false);
+
+        $this->assertSame([], $response->headers->getCookies());
+        $this->assertArrayHasKey('laravel', $response->json());
+
+        /* Eigener Schlüssel geht vor dem Lizenzschlüssel. */
+        config(['wm-consent.status_key' => 'eigen']);
+        $this->post('/wm-consent/status', [], $signed('lizenz-123', $time))->assertNotFound();
+        $this->post('/wm-consent/status', [], $signed('eigen', $time))->assertOk();
+    }
+
     public function test_only_people_with_the_permission_open_the_page(): void
     {
         $this->actingAs(User::make()->email('redaktion@kunde.test')->save());
@@ -287,6 +354,14 @@ colors:
         }
 
         $this->agencyDefaults = $defaults;
+    }
+
+    /** Letzte Abfrage des zentralen Stylesheets eine Stunde zurück, damit der nächste Aufruf neu holt. */
+    private function expireStyles(): void
+    {
+        $meta = config('wm-consent.styles_path').'.json';
+        file_put_contents($meta, json_encode([...json_decode(file_get_contents($meta), true), 'checked' => time() - 7200]));
+        $this->app->forgetScopedInstances();
     }
 
     /** Wie eine echte View-Datei rendern (Antlers::parse() behandelt Text in Statamic 6 als Nutzerinhalt ohne Tags). */

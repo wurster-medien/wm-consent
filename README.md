@@ -36,6 +36,20 @@ Gespeichertes. Das Control Panel speichert nur, was von der Voreinstellung abwei
 einen Commit an. Beim Ausrollen von 1.2 auf eine Seite einmal `php please wm-consent:prune`: entfernt gespeicherte Werte,
 die der Voreinstellung gleichen (z. B. die Position, die am 20.10.2026 direkt auf den Servern gesetzt wurde).
 
+**Stylesheet zentral** (ab 1.2): [`styles/1/wm-consent.css`](styles/1/wm-consent.css) in diesem Repo (Branch `main`)
+holt der Server jeder Seite stündlich (`styles_url`, `styles_ttl`, gespeichert unter `storage/wm-consent/styles.css`)
+und liefert es selbst unter `/wm-consent/wm-consent.css` aus; der Browser lädt nie etwas von uns. Ohne Antwort gilt der
+letzte Stand, ohne jeden Stand `dist/wm-consent.css` aus dem Paket. Angenommen wird nur Text bis 300 KB mit `#cc-main`,
+ohne `@import` und ohne `url()` außer `data:`. Design ändern: `resources/css` anpassen, `npm run build`, prüfen, dann
+`npm run publish-styles` (kopiert nach `styles/1`) und pushen. `styles/1` muss zum HTML jeder 1.x ab 1.2 passen; wer das
+HTML des Banners so ändert, dass altes CSS nicht mehr passt, braucht eine neue Hauptversion (`AgencyStyles::MAJOR`,
+eigener Ordner).
+
+**Versionen für den Kundenbereich** (ab 1.2): `POST /wm-consent/status` liefert Statamic- (mit Edition), Laravel-,
+PHP- und Addon-Versionen und den Stand des Stylesheets, nur mit Signatur (`X-WM-Timestamp`, `X-WM-Signature` =
+HMAC-SHA256 über `wm-consent-status:{timestamp}`, höchstens 5 Minuten alt) mit dem Lizenzschlüssel von Statamic bzw.
+`WM_CONSENT_STATUS_KEY`; sonst 404. Außerhalb von `statamic.web`: kein statischer Cache, keine Sitzung.
+
 Im Layout:
 
 ```antlers

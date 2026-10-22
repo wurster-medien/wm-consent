@@ -4,6 +4,7 @@ namespace WursterMedien\Consent\Tags;
 
 use Statamic\Facades\Site;
 use Statamic\Tags\Tags;
+use WursterMedien\Consent\AgencyStyles;
 use WursterMedien\Consent\Core\HeadTag;
 use WursterMedien\Consent\Core\Lang;
 use WursterMedien\Consent\Core\Services;
@@ -43,7 +44,7 @@ class WmConsent extends Tags
 
         $settings['cookies'] = [...self::laravelCookies(), ...(array) ($settings['cookies'] ?? [])];
 
-        return HeadTag::render($settings, $path !== '' ? $path : '/wm-consent', self::version());
+        return HeadTag::render($settings, $path !== '' ? $path : '/wm-consent', self::version(), app(AgencyStyles::class)->version());
     }
 
     /**
@@ -93,7 +94,7 @@ class WmConsent extends Tags
         }, $content);
     }
 
-    /** Version für die Adressen von Skript und Stylesheet: ändert sich mit jedem neuen Build. */
+    /** Version für die Adresse des Skripts und des Stylesheets aus dem Paket: ändert sich mit jedem neuen Build. */
     public static function version(): string
     {
         static $version = null;

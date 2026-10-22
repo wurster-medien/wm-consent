@@ -21,6 +21,22 @@ return [
 
     'defaults_ttl' => 3600,
 
+    /*
+     * Stylesheet des Banners zentral von der Agentur: der Server holt es stündlich und liefert es selbst aus (der Browser
+     * lädt nie etwas von uns); ohne Antwort gilt der letzte Stand, ohne jeden Stand das aus dem Paket. null schaltet ab.
+     */
+    'styles_url' => env('WM_CONSENT_STYLES_URL', \WursterMedien\Consent\AgencyStyles::URL),
+
+    'styles_ttl' => 3600,
+
+    'styles_path' => storage_path('wm-consent/styles.css'),
+
+    /*
+     * Schlüssel für die Abfrage der Versionen durch den Kundenbereich (POST /wm-consent/status, signiert). Ohne Angabe
+     * der Lizenzschlüssel von Statamic; nur für Seiten ohne Lizenzschlüssel nötig.
+     */
+    'status_key' => env('WM_CONSENT_STATUS_KEY'),
+
     /* Welche Dienste der Filter auf der Website gefunden hat (Übersicht im Tab „Cookies“), nicht im Git. */
     'detected_path' => storage_path('wm-consent/detected.json'),
 
