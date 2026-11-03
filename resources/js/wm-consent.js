@@ -14,6 +14,8 @@ import { texts, language, localize } from './texts.js';
 const configElement = document.getElementById('wm-consent-config');
 const config = configElement ? JSON.parse(configElement.textContent || '{}') : {};
 
+loadAnnotations();
+
 /** Dienste dieser Seite: eingetragen plus vom Ausgabefilter gefunden. */
 const serviceKeys = [...new Set([...(config.services || []), ...(config.detected || [])])].filter((key) => SERVICES[key]);
 /** Sprache der Seite (lang: Kürzel für eigene Texte, base: Sprache der Standardtexte). */
@@ -535,4 +537,29 @@ function readableOn(color) {
 
 function toPattern(name) {
     return name.endsWith('*') ? new RegExp('^' + name.slice(0, -1).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) : name;
+}
+
+/**
+ * Anmerkungen aus dem Kundenbereich (Simon, 3.11.2026): Öffnet der Kunde seine Website über „Auf der Website ansehen“,
+ * steht ein Token im Anker (#wm-anmerkungen=…). Nur dann (oder solange er im sessionStorage dieses Tabs steht) lädt die
+ * Seite die Pin-Ebene vom Kundenbereich; normale Besucher laden nichts, kein Cookie.
+ */
+function loadAnnotations() {
+    const key = 'wm-anmerkungen';
+    let active = location.hash.indexOf(key + '=') !== -1;
+
+    try {
+        active = active || Boolean(sessionStorage.getItem(key));
+    } catch (error) {
+        /* ohne sessionStorage nur mit Anker */
+    }
+
+    if (!active) {
+        return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://konto.wurster-medien.de/js/wm-anmerkungen.js';
+    script.async = true;
+    document.head.appendChild(script);
 }
