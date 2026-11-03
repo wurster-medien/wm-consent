@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use WursterMedien\Consent\Http\Controllers\AssetController;
+use WursterMedien\Consent\Http\Controllers\ContentController;
 use WursterMedien\Consent\Http\Controllers\StatusController;
 
 Route::get('wm-consent/{file}', AssetController::class)
@@ -12,3 +13,8 @@ Route::get('wm-consent/{file}', AssetController::class)
 Route::post('wm-consent/status', StatusController::class)
     ->withoutMiddleware(['statamic.web', 'web'])
     ->name('wm-consent.status');
+
+/* Inhalte und Platzhalter für „Website prüfen“ im Kundenbereich, signiert wie die Versionen. */
+Route::post('wm-consent/inhalte', ContentController::class)
+    ->withoutMiddleware(['statamic.web', 'web'])
+    ->name('wm-consent.content');

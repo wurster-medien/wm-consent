@@ -6,6 +6,7 @@ use Statamic\Facades\CP\Nav;
 use Statamic\Facades\Permission;
 use Statamic\Providers\AddonServiceProvider;
 use WursterMedien\Consent\Console\Prune;
+use WursterMedien\Consent\Console\RememberDemo;
 use WursterMedien\Consent\Http\Middleware\FilterOutput;
 use WursterMedien\Consent\Support\StatamicVersion;
 use WursterMedien\Consent\Tags\WmConsent;
@@ -14,7 +15,8 @@ use WursterMedien\Consent\Tags\WmConsent;
  * Cookie-Banner von Wurster Medien für Statamic 5 und 6: Tag {{ wm_consent }} für den <head>, Ausgabefilter in der
  * Gruppe statamic.web (innen, damit der statische Cache schon das gefilterte HTML speichert), Skript und Stylesheet
  * über eine eigene Route (kein Veröffentlichen nach Updates nötig, Stylesheet zentral über AgencyStyles), Versionen für
- * den Kundenbereich über POST /wm-consent/status (StatusController), Einstellungen im Control Panel unter Werkzeuge →
+ * den Kundenbereich über POST /wm-consent/status (StatusController), Inhalte und Platzhalter über POST
+ * /wm-consent/inhalte (ContentController, Demo-Stand über wm-consent:demo-stand), Einstellungen im Control Panel unter Werkzeuge →
  * „Cookie-Banner“ (Settings, gespeichert in content/wm-consent.yaml).
  */
 class ServiceProvider extends AddonServiceProvider
@@ -25,6 +27,7 @@ class ServiceProvider extends AddonServiceProvider
 
     protected $commands = [
         Prune::class,
+        RememberDemo::class,
     ];
 
     protected $routes = [

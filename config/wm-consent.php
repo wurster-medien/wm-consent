@@ -40,6 +40,9 @@ return [
     /* Welche Dienste der Filter auf der Website gefunden hat (Übersicht im Tab „Cookies“), nicht im Git. */
     'detected_path' => storage_path('wm-consent/detected.json'),
 
+    /* Gemerkter Demo-Stand der Texte (wm-consent:demo-stand), Platzhalter für „Website prüfen“ im Kundenbereich. */
+    'demo_path' => storage_path('wm-consent/demo.json'),
+
     /* Bekannte Tracker und Einbettungen beim Ausliefern blockieren (src/Core/OutputFilter.php). */
     'filter' => true,
 

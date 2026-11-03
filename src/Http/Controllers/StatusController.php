@@ -54,12 +54,13 @@ class StatusController
         return is_string($key) && trim($key) !== '' ? trim($key) : null;
     }
 
-    public static function signature(string $key, int $timestamp): string
+    public static function signature(string $key, int $timestamp, string $purpose = 'wm-consent-status'): string
     {
-        return hash_hmac('sha256', 'wm-consent-status:'.$timestamp, $key);
+        return hash_hmac('sha256', $purpose.':'.$timestamp, $key);
     }
 
-    private static function verified(Request $request, string $key): bool
+    /** Signatur je Zweck (Versionen hier, Inhalte im ContentController), höchstens WINDOW Sekunden alt. */
+    public static function verified(Request $request, string $key, string $purpose = 'wm-consent-status'): bool
     {
         $timestamp = (string) $request->header('X-WM-Timestamp', '');
         $signature = (string) $request->header('X-WM-Signature', '');
@@ -68,7 +69,7 @@ class StatusController
             return false;
         }
 
-        return hash_equals(self::signature($key, (int) $timestamp), strtolower($signature));
+        return hash_equals(self::signature($key, (int) $timestamp, $purpose), strtolower($signature));
     }
 
     private static function packageVersion(string $package): ?string
