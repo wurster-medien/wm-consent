@@ -105,6 +105,22 @@ class ContentTest extends AddonTestCase
         $this->assertSame($page['sections'][1]['fingerprint'], $after['sections'][1]['fingerprint']);
     }
 
+    public function test_entries_under_an_unpublished_mount_are_left_out(): void
+    {
+        $mount = Entry::make()->collection('pages')->slug('aktuelles')->data(['title' => 'Aktuelles'])->published(false);
+        $mount->save();
+        Collection::make('news')->routes('/aktuelles/{slug}')->mount($mount->id())->save();
+        Entry::make()->collection('news')->slug('neues-logo')->data(['title' => 'Neues Logo'])->save();
+        Entry::make()->collection('pages')->slug('kontakt')->data(['title' => 'Kontakt'])->save();
+
+        $this->assertSame(['Kontakt'], array_column($this->content()->json('pages'), 'title'));
+
+        $mount->published(true)->save();
+        $this->assertSame(['Aktuelles', 'Neues Logo', 'Kontakt'], array_column($this->content()->json('pages'), 'title'));
+
+        Collection::find('news')?->delete();
+    }
+
     public function test_only_signed_requests_get_the_content(): void
     {
         $time = time();

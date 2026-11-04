@@ -66,6 +66,7 @@ final class ContentMap
 
         $entries = Entries::query()->where('published', true)->get()
             ->filter(fn (Entry $entry): bool => is_string($entry->absoluteUrl()) && $entry->absoluteUrl() !== '')
+            ->filter(fn (Entry $entry): bool => self::reachable($entry))
             ->sortBy(fn (Entry $entry): string => (string) $entry->url())
             ->take(self::MAX_PAGES);
 
@@ -100,6 +101,29 @@ final class ContentMap
         }
 
         return $pages;
+    }
+
+    /**
+     * Hängt die Sammlung an einer Seite (mount), die nicht veröffentlicht ist, führt von der Website kein Weg zu ihren
+     * Einträgen (Simon, 4.11.2026: „Aktuelles“ bei Zinser wird nicht genutzt): dann gehören sie nicht zum Prüfen.
+     */
+    private static function reachable(Entry $entry): bool
+    {
+        for ($depth = 0, $current = $entry; $depth < 5; $depth++) {
+            $mount = $current->collection()?->mount();
+
+            if ($mount === null || $mount->id() === $current->id()) {
+                return true;
+            }
+
+            if (! $mount->published()) {
+                return false;
+            }
+
+            $current = $mount;
+        }
+
+        return true;
     }
 
     /** Fingerabdruck eines Textes: ohne HTML, Leerraum zusammengefasst. */

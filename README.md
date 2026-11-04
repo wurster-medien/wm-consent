@@ -53,9 +53,9 @@ HMAC-SHA256 über `wm-consent-status:{timestamp}`, höchstens 5 Minuten alt) mit
 **Inhalte für „Website prüfen“** (ab 1.3): `php please wm-consent:demo-stand` merkt sich vor der Präsentation die
 Fingerabdrücke aller Texte (in `storage/wm-consent/demo.json`, `--vergessen` löscht). `POST /wm-consent/inhalte`
 (signiert wie oben, mit `wm-consent-content:{timestamp}`) liefert je veröffentlichtem Eintrag mit Adresse die Stellen
-(Texte und Bilder aus den Feldern, auch in Replicator, Bard, Grid, Gruppen) und Bereiche (Sets der obersten Ebene) mit
-Fingerabdruck. Platzhalter sind Texte, die sich seit dem Demo-Stand nicht geändert haben, und Bilder aus einem Ordner
-`demo/`; nur deren Text geht mit.
+(Texte und Bilder aus den Feldern, auch in Replicator, Bard, Grid, Gruppen und Listen) mit Text und Bereiche (Sets der
+obersten Ebene) mit Fingerabdruck; Einträge einer Sammlung, deren Seite (mount) nicht veröffentlicht ist, fehlen.
+Platzhalter sind Texte, die sich seit dem Demo-Stand nicht geändert haben, und Bilder aus einem Ordner `demo/`.
 
 Im Layout:
 
