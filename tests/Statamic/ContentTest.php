@@ -38,6 +38,7 @@ class ContentTest extends AddonTestCase
         Collection::make('pages')->routes('/{slug}')->save();
         Blueprint::make('page')->setNamespace('collections.pages')->setContents(['tabs' => ['main' => ['sections' => [['fields' => [
             ['handle' => 'title', 'field' => ['type' => 'text']],
+            ['handle' => 'h1', 'field' => ['type' => 'list', 'display' => 'Überschrift']],
             ['handle' => 'intro', 'field' => ['type' => 'textarea', 'display' => 'Einleitung']],
             ['handle' => 'image', 'field' => ['type' => 'assets', 'container' => 'assets', 'max_files' => 1]],
             ['handle' => 'blocks', 'field' => ['type' => 'replicator', 'sets' => ['main' => ['sets' => [
@@ -60,6 +61,7 @@ class ContentTest extends AddonTestCase
     {
         Entry::make()->collection('pages')->slug('leistungen')->data([
             'title' => 'Leistungen',
+            'h1' => ['**Unsere Leistungen**', 'Alles für Ihren Garten.'],
             'intro' => 'Von der ersten Skizze bis zur letzten Pflanze.',
             'image' => ['demo/garten.jpg'],
             'blocks' => [
@@ -68,7 +70,7 @@ class ContentTest extends AddonTestCase
             ],
         ])->save();
 
-        $this->artisan('wm-consent:demo-stand')->expectsOutput('4 Texte als Demo-Stand gemerkt.')->assertSuccessful();
+        $this->artisan('wm-consent:demo-stand')->expectsOutput('6 Texte als Demo-Stand gemerkt.')->assertSuccessful();
 
         $entry = Entry::query()->where('slug', 'leistungen')->first();
         $entry->set('intro', 'Unser eigener Text.')->save();
@@ -83,6 +85,9 @@ class ContentTest extends AddonTestCase
         $this->assertSame('Unser eigener Text.', $spots['intro']['text']);
         $this->assertSame('demo/garten.jpg', $spots['image.0']['asset']);
         $this->assertSame('Naturstein, Holz oder Feinsteinzeug.', $spots['blocks.1.body']['text']);
+        $this->assertSame('Unsere Leistungen', $spots['h1.0']['text']);
+        $this->assertSame('Alles für Ihren Garten.', $spots['h1.1']['text']);
+        $this->assertTrue($spots['h1.1']['demo']);
         $this->assertTrue($spots['blocks.0.body']['demo']);
         $this->assertSame('Gemeinsam entwickeln wir einen Plan.', $spots['blocks.0.body']['text']);
         $this->assertSame('blocks.0', $spots['blocks.0.body']['section']);

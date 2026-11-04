@@ -178,6 +178,11 @@ final class ContentMap
                 $this->addText($spots, $path, $section, $label, is_string($value) ? Markdown::parse($value) : $value);
             } elseif (in_array($field->type(), self::TEXT_TYPES, true)) {
                 $this->addText($spots, $path, $section, $label, $value);
+            } elseif ($field->type() === 'list') {
+                /* Liste (z. B. Überschriften Zeile für Zeile): jede Zeile eine Stelle, oft mit Markdown wie „**Dachausbau**“. */
+                foreach (is_array($value) ? array_values($value) : [] as $index => $item) {
+                    $this->addText($spots, $path.'.'.$index, $section, $label, is_string($item) ? Markdown::parse($item) : $item);
+                }
             } elseif ($type instanceof Bard) {
                 $this->walkBard($type, $value, $path, $section, $label, $spots, $entryId, $top);
             } elseif ($type instanceof Replicator) {
