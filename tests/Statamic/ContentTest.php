@@ -64,7 +64,7 @@ class ContentTest extends AddonTestCase
             'image' => ['demo/garten.jpg'],
             'blocks' => [
                 ['type' => 'text', 'body' => 'Gemeinsam entwickeln wir einen Plan.'],
-                ['type' => 'text', 'body' => 'Naturstein, Holz oder Feinsteinzeug.'],
+                ['type' => 'text', 'body' => '**Naturstein**, Holz oder Feinsteinzeug.'],
             ],
         ])->save();
 
@@ -80,7 +80,9 @@ class ContentTest extends AddonTestCase
         $this->assertNotNull($data['demo_stand']);
         $this->assertStringEndsWith('/leistungen', $page['url']);
         $this->assertFalse($spots['intro']['demo']);
-        $this->assertArrayNotHasKey('text', $spots['intro']);
+        $this->assertSame('Unser eigener Text.', $spots['intro']['text']);
+        $this->assertSame('demo/garten.jpg', $spots['image.0']['asset']);
+        $this->assertSame('Naturstein, Holz oder Feinsteinzeug.', $spots['blocks.1.body']['text']);
         $this->assertTrue($spots['blocks.0.body']['demo']);
         $this->assertSame('Gemeinsam entwickeln wir einen Plan.', $spots['blocks.0.body']['text']);
         $this->assertSame('blocks.0', $spots['blocks.0.body']['section']);
@@ -90,7 +92,7 @@ class ContentTest extends AddonTestCase
         $this->assertSame('Text und Bild', $page['sections'][0]['label']);
 
         $before = $page['fingerprint'];
-        $entry->set('blocks', [['type' => 'text', 'body' => 'Neu.'], ['type' => 'text', 'body' => 'Naturstein, Holz oder Feinsteinzeug.']])->save();
+        $entry->set('blocks', [['type' => 'text', 'body' => 'Neu.'], ['type' => 'text', 'body' => '**Naturstein**, Holz oder Feinsteinzeug.']])->save();
         $after = $this->content()->json('pages.0');
 
         $this->assertNotSame($before, $after['fingerprint']);

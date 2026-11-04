@@ -5,6 +5,7 @@ namespace WursterMedien\Consent\Content;
 use Statamic\Contracts\Entries\Entry;
 use Statamic\Facades\Asset;
 use Statamic\Facades\Entry as Entries;
+use Statamic\Facades\Markdown;
 use Statamic\Fields\Field;
 use Statamic\Fields\Fields;
 use Statamic\Fieldtypes\Assets\Assets;
@@ -17,7 +18,8 @@ use Statamic\Fieldtypes\Replicator;
  * Inhalte der Seiten für den Kundenbereich (Simon, 3.11.2026: Platzhalter prüfen und freigeben): je Eintrag mit Adresse
  * die Stellen (Texte und Bilder aus den Feldern der Blueprint, auch in Replicator, Bard, Grid und Gruppen) und die
  * Bereiche (Sets der obersten Ebene), jeweils mit Fingerabdruck. Demo ist eine Stelle, deren Text sich seit „Demo-Stand
- * merken“ (DemoStand) nicht geändert hat, oder ein Bild aus einem Ordner demo/. Nur lesen, nie schreiben.
+ * merken“ (DemoStand) nicht geändert hat, oder ein Bild aus einem Ordner demo/. Jede Stelle geht mit ihrem Text bzw. Bild
+ * mit (ab 1.3.1), damit die Anmerkungs-Ebene des Kundenbereichs sie auf der Seite findet und abhaken lässt. Nur lesen.
  */
 final class ContentMap
 {
@@ -72,14 +74,16 @@ final class ContentMap
                 $isDemo = $spot['kind'] === 'image' ? $spot['demo'] : $demo !== [] && isset($demo[$spot['fingerprint']]);
                 $out = ['path' => $spot['path'], 'section' => $spot['section'], 'kind' => $spot['kind'], 'fingerprint' => $spot['fingerprint'], 'demo' => $isDemo];
 
-                if ($isDemo && $spot['kind'] === 'text') {
+                /* Text jeder Stelle (wie er auf der Seite steht), damit die Anmerkungs-Ebene sie auf der Seite findet. */
+                $out['field'] = $spot['field'];
+
+                if ($spot['kind'] === 'text') {
                     $out['text'] = mb_substr($spot['text'], 0, self::MAX_TEXT);
-                    $out['field'] = $spot['field'];
                 }
 
                 if ($spot['kind'] === 'image') {
                     $out['url'] = $spot['url'];
-                    $out['field'] = $spot['field'];
+                    $out['asset'] = $spot['asset'];
                 }
 
                 return $out;
@@ -146,7 +150,7 @@ final class ContentMap
     /**
      * Stellen eines Eintrags in der Reihenfolge der Blueprint.
      *
-     * @return list<array{path: string, section: string|null, field: string, kind: string, text: string, url: string|null, demo: bool, fingerprint: string}>
+     * @return list<array{path: string, section: string|null, field: string, kind: string, text: string, url: string|null, asset?: string, demo: bool, fingerprint: string}>
      */
     public function spots(Entry $entry): array
     {
@@ -169,7 +173,10 @@ final class ContentMap
             $type = $field->fieldtype();
             $label = (string) ($field->display() ?: $handle);
 
-            if (in_array($field->type(), self::TEXT_TYPES, true)) {
+            if ($field->type() === 'markdown') {
+                /* Wie auf der Seite: Markdown erst umwandeln, sonst passen Text und Fingerabdruck nicht zur Seite. */
+                $this->addText($spots, $path, $section, $label, is_string($value) ? Markdown::parse($value) : $value);
+            } elseif (in_array($field->type(), self::TEXT_TYPES, true)) {
                 $this->addText($spots, $path, $section, $label, $value);
             } elseif ($type instanceof Bard) {
                 $this->walkBard($type, $value, $path, $section, $label, $spots, $entryId, $top);
@@ -207,6 +214,7 @@ final class ContentMap
                         'kind' => 'image',
                         'text' => '',
                         'url' => $container !== '' ? Asset::find($container.'::'.$asset)?->url() : null,
+                        'asset' => $asset,
                         'demo' => preg_match('#(^|/)demo/#', $asset) === 1,
                         'fingerprint' => self::hash($asset),
                     ];
@@ -268,7 +276,14 @@ final class ContentMap
             return $node['text'];
         }
 
-        return implode(' ', array_map(fn (mixed $child): string => is_array($child) ? self::nodeText($child) : '', (array) ($node['content'] ?? [])));
+        if (($node['type'] ?? null) === 'hardBreak') {
+            return ' ';
+        }
+
+        /* Text in einem Absatz oder einer Überschrift am Stück (fett, kursiv, Links), Absätze durch Leerzeichen getrennt. */
+        $glue = in_array($node['type'] ?? null, ['paragraph', 'heading'], true) ? '' : ' ';
+
+        return implode($glue, array_map(fn (mixed $child): string => is_array($child) ? self::nodeText($child) : '', (array) ($node['content'] ?? [])));
     }
 
     /**
