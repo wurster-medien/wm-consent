@@ -541,17 +541,20 @@ function toPattern(name) {
 
 /**
  * Anmerkungen aus dem Kundenbereich (Simon, 3.11.2026): Öffnet der Kunde seine Website über „Auf der Website ansehen“,
- * steht ein Token im Anker (#wm-anmerkungen=…). Nur dann (oder solange er im sessionStorage dieses Tabs steht) lädt die
- * Seite die Pin-Ebene vom Kundenbereich; normale Besucher laden nichts, kein Cookie.
+ * steht ein Token im Anker (#wm-anmerkungen=…). Nur dann oder solange ein gültiger Token im Browser steht (im Tab oder,
+ * damit neue Tabs die Ebene auch haben, bis zu seinem Ablauf im localStorage; Simon 4.11.2026) lädt die Seite die
+ * Pin-Ebene vom Kundenbereich; normale Besucher laden nichts, kein Cookie.
  */
 function loadAnnotations() {
     const key = 'wm-anmerkungen';
     let active = location.hash.indexOf(key + '=') !== -1;
+    /* Token „website.nutzer.ablauf.signatur“: nur, solange er nicht abgelaufen ist */
+    const valid = (token) => Boolean(token) && Number(String(token).split('.')[2] || 0) * 1000 > Date.now();
 
     try {
-        active = active || Boolean(sessionStorage.getItem(key));
+        active = active || valid(sessionStorage.getItem(key)) || valid(localStorage.getItem(key));
     } catch (error) {
-        /* ohne sessionStorage nur mit Anker */
+        /* ohne Speicher nur mit Anker */
     }
 
     if (!active) {
