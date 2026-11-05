@@ -80,6 +80,12 @@ final class ContentMap
 
                 if ($spot['kind'] === 'text') {
                     $out['text'] = mb_substr($spot['text'], 0, self::MAX_TEXT);
+                    $out['length'] = mb_strlen($spot['text']);
+                }
+
+                /* Vorgaben aus der Blueprint für die Liste „Inhalte liefern“ im Kundenbereich (FieldNeeds). */
+                if ($spot['need'] !== []) {
+                    $out['need'] = $spot['need'];
                 }
 
                 if ($spot['kind'] === 'image') {
@@ -174,7 +180,7 @@ final class ContentMap
     /**
      * Stellen eines Eintrags in der Reihenfolge der Blueprint.
      *
-     * @return list<array{path: string, section: string|null, field: string, kind: string, text: string, url: string|null, asset?: string, demo: bool, fingerprint: string}>
+     * @return list<array{path: string, section: string|null, field: string, kind: string, text: string, url: string|null, asset?: string, demo: bool, fingerprint: string, need: array<string, mixed>}>
      */
     public function spots(Entry $entry): array
     {
@@ -199,16 +205,16 @@ final class ContentMap
 
             if ($field->type() === 'markdown') {
                 /* Wie auf der Seite: Markdown erst umwandeln, sonst passen Text und Fingerabdruck nicht zur Seite. */
-                $this->addText($spots, $path, $section, $label, is_string($value) ? Markdown::parse($value) : $value);
+                $this->addText($spots, $path, $section, $label, is_string($value) ? Markdown::parse($value) : $value, $field);
             } elseif (in_array($field->type(), self::TEXT_TYPES, true)) {
-                $this->addText($spots, $path, $section, $label, $value);
+                $this->addText($spots, $path, $section, $label, $value, $field);
             } elseif ($field->type() === 'list') {
                 /* Liste (z. B. Überschriften Zeile für Zeile): jede Zeile eine Stelle, oft mit Markdown wie „**Dachausbau**“. */
                 foreach (is_array($value) ? array_values($value) : [] as $index => $item) {
-                    $this->addText($spots, $path.'.'.$index, $section, $label, is_string($item) ? Markdown::parse($item) : $item);
+                    $this->addText($spots, $path.'.'.$index, $section, $label, is_string($item) ? Markdown::parse($item) : $item, $field);
                 }
             } elseif ($type instanceof Bard) {
-                $this->walkBard($type, $value, $path, $section, $label, $spots, $entryId, $top);
+                $this->walkBard($type, $value, $path, $section, $field, $spots, $entryId, $top);
             } elseif ($type instanceof Replicator) {
                 foreach (is_array($value) ? array_values($value) : [] as $index => $set) {
                     if (! is_array($set) || ! is_string($set['type'] ?? null) || ($set['enabled'] ?? true) === false) {
@@ -246,6 +252,7 @@ final class ContentMap
                         'asset' => $asset,
                         'demo' => preg_match('#(^|/)demo/#', $asset) === 1,
                         'fingerprint' => self::hash($asset),
+                        'need' => FieldNeeds::of($field),
                     ];
                 }
             }
@@ -257,10 +264,12 @@ final class ContentMap
      *
      * @param  list<array<string, mixed>>  $spots
      */
-    private function walkBard(Bard $type, mixed $value, string $path, ?string $section, string $label, array &$spots, string $entryId, bool $top): void
+    private function walkBard(Bard $type, mixed $value, string $path, ?string $section, Field $field, array &$spots, string $entryId, bool $top): void
     {
+        $label = (string) ($field->display() ?: $field->handle());
+
         if (is_string($value)) {
-            $this->addText($spots, $path, $section, $label, $value);
+            $this->addText($spots, $path, $section, $label, $value, $field);
 
             return;
         }
@@ -293,7 +302,7 @@ final class ContentMap
             $index++;
         }
 
-        $this->addText($spots, $path, $section, $label, implode(' ', $text));
+        $this->addText($spots, $path, $section, $label, implode(' ', $text), $field);
     }
 
     /**
@@ -318,13 +327,13 @@ final class ContentMap
     /**
      * @param  list<array<string, mixed>>  $spots
      */
-    private function addText(array &$spots, string $path, ?string $section, string $label, mixed $value): void
+    private function addText(array &$spots, string $path, ?string $section, string $label, mixed $value, Field $field): void
     {
         if (! is_string($value) || ($text = self::normalize($value)) === '') {
             return;
         }
 
-        $spots[] = ['path' => $path, 'section' => $section, 'field' => $label, 'kind' => 'text', 'text' => $text, 'url' => null, 'demo' => false, 'fingerprint' => self::hash($text)];
+        $spots[] = ['path' => $path, 'section' => $section, 'field' => $label, 'kind' => 'text', 'text' => $text, 'url' => null, 'demo' => false, 'fingerprint' => self::hash($text), 'need' => FieldNeeds::of($field)];
     }
 
     private function setLabel(Replicator $type, string $handle): string

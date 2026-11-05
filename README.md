@@ -57,6 +57,24 @@ Fingerabdrücke aller Texte (in `storage/wm-consent/demo.json`, `--vergessen` l�
 obersten Ebene) mit Fingerabdruck; Einträge einer Sammlung, deren Seite (mount) nicht veröffentlicht ist, fehlen.
 Platzhalter sind Texte, die sich seit dem Demo-Stand nicht geändert haben, und Bilder aus einem Ordner `demo/`.
 
+**Liste „Inhalte liefern“** (ab 1.4): dieselbe Antwort trägt je Stelle `need` (Pflicht, Zeichengrenze, Zahl der Bilder)
+und `length`, dazu `needs.collections` (Sammlungen außer Seitenbäumen: Felder eines Eintrags, Zahl der Einträge, davon
+Demo) und `needs.globals` (Felder je Global-Set mit Stand leer, Demo, gefüllt; der Demo-Stand merkt sich auch die Texte
+der Globals). Was nur der Kunde wissen muss, steht als eigener Schlüssel am Feld in der Blueprint, Statamic lässt ihn
+stehen und zeigt ihn im Control Panel nicht:
+
+```yaml
+-
+  handle: hero_bild
+  field:
+    type: assets
+    max_files: 1
+    wm_image_width: 2400     # Mindestbreite in Pixeln (sonst eine Pixelzahl aus den instructions)
+    wm_image_ratio: '2:1'    # Seitenverhältnis
+    wm_hint: 'Querformat, Ihr Team bei der Arbeit'
+    wm_need: false           # Feld nie abfragen
+```
+
 Im Layout:
 
 ```antlers

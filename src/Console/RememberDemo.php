@@ -5,6 +5,7 @@ namespace WursterMedien\Consent\Console;
 use Illuminate\Console\Command;
 use Statamic\Console\RunsInPlease;
 use WursterMedien\Consent\Content\ContentMap;
+use WursterMedien\Consent\Content\ContentNeeds;
 use WursterMedien\Consent\Content\DemoStand;
 
 /**
@@ -20,7 +21,7 @@ class RememberDemo extends Command
 
     protected $description = 'Kundenbereich: Demo-Stand der Texte merken (Platzhalter zum Prüfen)';
 
-    public function handle(ContentMap $content, DemoStand $demo): int
+    public function handle(ContentMap $content, ContentNeeds $needs, DemoStand $demo): int
     {
         if ($this->option('vergessen')) {
             $demo->forget();
@@ -29,7 +30,8 @@ class RememberDemo extends Command
             return self::SUCCESS;
         }
 
-        $prints = $content->allTextFingerprints();
+        /* Dazu die Globals (Musterangaben im Impressum), seit 1.4. */
+        $prints = array_values(array_unique([...$content->allTextFingerprints(), ...$needs->globalTextFingerprints()]));
         $demo->remember($prints);
         $this->info(count($prints).' Texte als Demo-Stand gemerkt.');
 

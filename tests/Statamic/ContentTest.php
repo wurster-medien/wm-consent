@@ -6,6 +6,7 @@ use Statamic\Facades\AssetContainer;
 use Statamic\Facades\Blueprint;
 use Statamic\Facades\Collection;
 use Statamic\Facades\Entry;
+use Statamic\Facades\GlobalSet;
 use Statamic\Testing\AddonTestCase;
 use WursterMedien\Consent\Http\Controllers\StatusController;
 use WursterMedien\Consent\ServiceProvider;
@@ -39,8 +40,8 @@ class ContentTest extends AddonTestCase
         Blueprint::make('page')->setNamespace('collections.pages')->setContents(['tabs' => ['main' => ['sections' => [['fields' => [
             ['handle' => 'title', 'field' => ['type' => 'text']],
             ['handle' => 'h1', 'field' => ['type' => 'list', 'display' => 'Überschrift']],
-            ['handle' => 'intro', 'field' => ['type' => 'textarea', 'display' => 'Einleitung']],
-            ['handle' => 'image', 'field' => ['type' => 'assets', 'container' => 'assets', 'max_files' => 1]],
+            ['handle' => 'intro', 'field' => ['type' => 'textarea', 'display' => 'Einleitung', 'character_limit' => 300, 'validate' => ['required']]],
+            ['handle' => 'image', 'field' => ['type' => 'assets', 'container' => 'assets', 'max_files' => 1, 'instructions' => 'Min. 2600px Breite', 'wm_image_ratio' => '2:1']],
             ['handle' => 'blocks', 'field' => ['type' => 'replicator', 'sets' => ['main' => ['sets' => [
                 'text' => ['display' => 'Text und Bild', 'fields' => [['handle' => 'body', 'field' => ['type' => 'markdown']]]],
             ]]]]],
@@ -119,6 +120,58 @@ class ContentTest extends AddonTestCase
         $this->assertSame(['Aktuelles', 'Neues Logo', 'Kontakt'], array_column($this->content()->json('pages'), 'title'));
 
         Collection::find('news')?->delete();
+    }
+
+    public function test_needs_from_the_blueprints(): void
+    {
+        Entry::make()->collection('pages')->slug('leistungen')->data(['title' => 'Leistungen', 'intro' => 'Von der ersten Skizze bis zur letzten Pflanze.', 'image' => ['demo/garten.jpg']])->save();
+
+        Collection::make('team')->routes('/team/{slug}')->titleFormats('{vorname} {nachname}')->save();
+        Blueprint::make('mitglied')->setNamespace('collections.team')->setContents(['tabs' => ['main' => ['sections' => [['fields' => [
+            ['handle' => 'title', 'field' => ['type' => 'text']],
+            ['handle' => 'vorname', 'field' => ['type' => 'text', 'display' => 'Vorname']],
+            ['handle' => 'foto', 'field' => ['type' => 'assets', 'container' => 'assets', 'display' => 'Foto', 'max_files' => 1, 'wm_image_width' => 1000, 'wm_hint' => 'Hochformat, ruhiger Hintergrund']],
+            ['handle' => 'slug', 'field' => ['type' => 'slug']],
+            ['handle' => 'intern', 'field' => ['type' => 'text', 'wm_need' => false]],
+        ]]]]]])->save();
+        Entry::make()->collection('team')->slug('erika')->data(['vorname' => 'Erika', 'foto' => ['demo/erika.jpg']])->save();
+        Entry::make()->collection('team')->slug('max')->data(['vorname' => 'Max', 'foto' => ['team/max.jpg']])->save();
+
+        $set = GlobalSet::make('impressum')->title('Impressum');
+        $set->save();
+        Blueprint::make('impressum')->setNamespace('globals')->setContents(['tabs' => ['main' => ['sections' => [['fields' => [
+            ['handle' => 'firmierung', 'field' => ['type' => 'textarea', 'display' => 'Firmierung']],
+            ['handle' => 'register', 'field' => ['type' => 'text', 'display' => 'Register']],
+            ['handle' => 'gericht', 'field' => ['type' => 'text', 'display' => 'Gericht']],
+        ]]]]]])->save();
+        $set->inDefaultSite()->data(['firmierung' => 'Musterfirma GmbH', 'gericht' => 'Amtsgericht Stuttgart'])->save();
+
+        $this->artisan('wm-consent:demo-stand')->assertSuccessful();
+        GlobalSet::find('impressum')->inDefaultSite()->set('gericht', 'Amtsgericht Freiburg')->save();
+
+        $data = $this->content()->assertOk()->json();
+        $spots = collect(collect($data['pages'])->firstWhere('title', 'Leistungen')['spots'])->keyBy('path');
+
+        $this->assertSame(['required' => true, 'max_chars' => 300], $spots['intro']['need']);
+        $this->assertSame(46, $spots['intro']['length']);
+        $this->assertSame(['max_files' => 1, 'width' => 2600, 'ratio' => '2:1'], $spots['image.0']['need']);
+
+        $team = collect($data['needs']['collections'])->firstWhere('handle', 'team');
+        $this->assertSame(2, $team['entries']);
+        $this->assertSame(1, $team['demo_entries']);
+        $this->assertSame(['Vorname', 'Foto'], array_column($team['fields'], 'label'));
+        $this->assertSame(['max_files' => 1, 'width' => 1000, 'hint' => 'Hochformat, ruhiger Hintergrund'], $team['fields'][1]['need']);
+        $this->assertNotNull(collect($data['needs']['collections'])->firstWhere('handle', 'pages'));
+
+        $impressum = collect($data['needs']['globals'])->firstWhere('handle', 'impressum');
+        $this->assertSame(['demo', 'empty', 'filled'], array_column($impressum['fields'], 'state'));
+
+        /* Seitenbäume stehen schon über die Seiten. */
+        Collection::find('pages')->structureContents(['root' => true])->save();
+        $this->assertNull(collect($this->content()->json('needs.collections'))->firstWhere('handle', 'pages'));
+
+        Collection::find('team')?->delete();
+        GlobalSet::find('impressum')?->delete();
     }
 
     public function test_only_signed_requests_get_the_content(): void
