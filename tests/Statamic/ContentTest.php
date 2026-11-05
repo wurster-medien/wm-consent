@@ -118,6 +118,7 @@ class ContentTest extends AddonTestCase
 
         $mount->published(true)->save();
         $this->assertSame(['Aktuelles', 'Neues Logo', 'Kontakt'], array_column($this->content()->json('pages'), 'title'));
+        $this->assertSame(['pages', 'news', 'pages'], array_column($this->content()->json('pages'), 'collection'));
 
         Collection::find('news')?->delete();
     }
@@ -174,6 +175,23 @@ class ContentTest extends AddonTestCase
 
         Collection::find('team')?->delete();
         GlobalSet::find('impressum')?->delete();
+    }
+
+    public function test_pages_follow_the_navigation(): void
+    {
+        Collection::make('nav')->routes('/{slug}')->structureContents(['root' => false])->save();
+        $zebra = Entry::make()->collection('nav')->slug('zebra')->data(['title' => 'Zebra']);
+        $zebra->save();
+        $alpha = Entry::make()->collection('nav')->slug('alpha')->data(['title' => 'Alpha']);
+        $alpha->save();
+        Collection::find('nav')->structure()->in('default')->tree([['entry' => $zebra->id()], ['entry' => $alpha->id()]])->save();
+        Collection::make('news')->routes('/zebra/{slug}')->mount($zebra->id())->save();
+        Entry::make()->collection('news')->slug('neu')->data(['title' => 'Neu'])->save();
+
+        $this->assertSame(['Zebra', 'Neu', 'Alpha'], array_column($this->content()->json('pages'), 'title'));
+
+        Collection::find('news')?->delete();
+        Collection::find('nav')?->delete();
     }
 
     public function test_only_signed_requests_get_the_content(): void

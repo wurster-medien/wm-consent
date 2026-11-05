@@ -54,7 +54,8 @@ HMAC-SHA256 über `wm-consent-status:{timestamp}`, höchstens 5 Minuten alt) mit
 Fingerabdrücke aller Texte (in `storage/wm-consent/demo.json`, `--vergessen` löscht). `POST /wm-consent/inhalte`
 (signiert wie oben, mit `wm-consent-content:{timestamp}`) liefert je veröffentlichtem Eintrag mit Adresse die Stellen
 (Texte und Bilder aus den Feldern, auch in Replicator, Bard, Grid, Gruppen und Listen) mit Text und Bereiche (Sets der
-obersten Ebene) mit Fingerabdruck; Einträge einer Sammlung, deren Seite (mount) nicht veröffentlicht ist, fehlen.
+obersten Ebene) mit Fingerabdruck; Einträge einer Sammlung, deren Seite (mount) nicht veröffentlicht ist, fehlen. Ab 1.4.2
+in der Reihenfolge der Navigation (Einträge hinter der Seite, an der ihre Sammlung hängt) und mit `collection` je Seite.
 Platzhalter sind Texte und Bilder, die sich seit dem Demo-Stand nicht geändert haben (Bilder ab 1.4.1), und Bilder aus
 einem Ordner `demo/`.
 

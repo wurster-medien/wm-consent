@@ -4,8 +4,10 @@ namespace WursterMedien\Consent\Content;
 
 use Statamic\Contracts\Entries\Entry;
 use Statamic\Facades\Asset;
+use Statamic\Facades\Collection;
 use Statamic\Facades\Entry as Entries;
 use Statamic\Facades\Markdown;
+use Statamic\Facades\Site;
 use Statamic\Fields\Field;
 use Statamic\Fields\Fields;
 use Statamic\Fieldtypes\Assets\Assets;
@@ -77,7 +79,7 @@ final class ContentMap
         $entries = Entries::query()->where('published', true)->get()
             ->filter(fn (Entry $entry): bool => is_string($entry->absoluteUrl()) && $entry->absoluteUrl() !== '')
             ->filter(fn (Entry $entry): bool => self::reachable($entry))
-            ->sortBy(fn (Entry $entry): string => (string) $entry->url())
+            ->sortBy(self::navigationOrder())
             ->take(self::MAX_PAGES);
 
         foreach ($entries as $entry) {
@@ -110,6 +112,7 @@ final class ContentMap
                 'id' => (string) $entry->id(),
                 'title' => (string) ($entry->get('title') ?? $entry->slug()),
                 'url' => (string) $entry->absoluteUrl(),
+                'collection' => (string) $entry->collectionHandle(),
                 'fingerprint' => self::hash(implode('|', array_map(fn (array $spot): string => $spot['path'].'='.$spot['fingerprint'], $spots))),
                 'sections' => $this->sections($entry, $spots),
                 'spots' => $spots,
@@ -117,6 +120,39 @@ final class ContentMap
         }
 
         return $pages;
+    }
+
+    /**
+     * Reihenfolge wie in der Navigation (ab 1.4.2, Simon 5.11.2026): Seiten in der Reihenfolge ihres Baums, Einträge einer
+     * Sammlung direkt hinter der Seite, an der sie hängt (in ihrer eigenen Reihenfolge, sonst nach Adresse), der Rest danach
+     * nach Adresse.
+     *
+     * @return \Closure(Entry): string
+     */
+    private static function navigationOrder(): \Closure
+    {
+        $order = [];
+
+        foreach (Collection::all() as $collection) {
+            $tree = $collection->structure()?->in(Site::default()->handle());
+
+            foreach ($tree?->flattenedPages() ?? [] as $page) {
+                $order[(string) ($page->reference() ?? $page->id())] ??= count($order);
+            }
+        }
+
+        return function (Entry $entry) use ($order): string {
+            $own = $order[(string) $entry->id()] ?? null;
+            $mount = $entry->collection()?->mount();
+            $parent = $mount !== null ? ($order[(string) $mount->id()] ?? null) : null;
+            $key = fn (?int $index): string => str_pad((string) ($index ?? 999999), 6, '0', STR_PAD_LEFT);
+
+            return match (true) {
+                $parent !== null => $key($parent).'|1|'.$key($own).'|'.$entry->url(),
+                $own !== null && $mount === null => $key($own).'|0',
+                default => $key(null).'|'.$entry->url(),
+            };
+        };
     }
 
     /**
