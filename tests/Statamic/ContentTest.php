@@ -71,7 +71,7 @@ class ContentTest extends AddonTestCase
             ],
         ])->save();
 
-        $this->artisan('wm-consent:demo-stand')->expectsOutput('6 Texte als Demo-Stand gemerkt.')->assertSuccessful();
+        $this->artisan('wm-consent:demo-stand')->expectsOutput('6 Texte und 1 Bilder als Demo-Stand gemerkt.')->assertSuccessful();
 
         $entry = Entry::query()->where('slug', 'leistungen')->first();
         $entry->set('intro', 'Unser eigener Text.')->save();
@@ -135,7 +135,8 @@ class ContentTest extends AddonTestCase
             ['handle' => 'intern', 'field' => ['type' => 'text', 'wm_need' => false]],
         ]]]]]])->save();
         Entry::make()->collection('team')->slug('erika')->data(['vorname' => 'Erika', 'foto' => ['demo/erika.jpg']])->save();
-        Entry::make()->collection('team')->slug('max')->data(['vorname' => 'Max', 'foto' => ['team/max.jpg']])->save();
+        /* Ein Musterbild außerhalb von demo/ gilt ab 1.4.1 auch als Platzhalter, solange es bleibt. */
+        Entry::make()->collection('team')->slug('lena')->data(['vorname' => 'Lena', 'foto' => ['team/lena.jpg']])->save();
 
         $set = GlobalSet::make('impressum')->title('Impressum');
         $set->save();
@@ -146,7 +147,8 @@ class ContentTest extends AddonTestCase
         ]]]]]])->save();
         $set->inDefaultSite()->data(['firmierung' => 'Musterfirma GmbH', 'gericht' => 'Amtsgericht Stuttgart'])->save();
 
-        $this->artisan('wm-consent:demo-stand')->assertSuccessful();
+        $this->artisan('wm-consent:demo-stand --globals')->assertSuccessful();
+        Entry::make()->collection('team')->slug('max')->data(['vorname' => 'Max', 'foto' => ['team/max.jpg']])->save();
         GlobalSet::find('impressum')->inDefaultSite()->set('gericht', 'Amtsgericht Freiburg')->save();
 
         $data = $this->content()->assertOk()->json();
@@ -157,8 +159,8 @@ class ContentTest extends AddonTestCase
         $this->assertSame(['max_files' => 1, 'width' => 2600, 'ratio' => '2:1'], $spots['image.0']['need']);
 
         $team = collect($data['needs']['collections'])->firstWhere('handle', 'team');
-        $this->assertSame(2, $team['entries']);
-        $this->assertSame(1, $team['demo_entries']);
+        $this->assertSame(3, $team['entries']);
+        $this->assertSame(2, $team['demo_entries']);
         $this->assertSame(['Vorname', 'Foto'], array_column($team['fields'], 'label'));
         $this->assertSame(['max_files' => 1, 'width' => 1000, 'hint' => 'Hochformat, ruhiger Hintergrund'], $team['fields'][1]['need']);
         $this->assertNotNull(collect($data['needs']['collections'])->firstWhere('handle', 'pages'));

@@ -55,12 +55,13 @@ Fingerabdrücke aller Texte (in `storage/wm-consent/demo.json`, `--vergessen` l�
 (signiert wie oben, mit `wm-consent-content:{timestamp}`) liefert je veröffentlichtem Eintrag mit Adresse die Stellen
 (Texte und Bilder aus den Feldern, auch in Replicator, Bard, Grid, Gruppen und Listen) mit Text und Bereiche (Sets der
 obersten Ebene) mit Fingerabdruck; Einträge einer Sammlung, deren Seite (mount) nicht veröffentlicht ist, fehlen.
-Platzhalter sind Texte, die sich seit dem Demo-Stand nicht geändert haben, und Bilder aus einem Ordner `demo/`.
+Platzhalter sind Texte und Bilder, die sich seit dem Demo-Stand nicht geändert haben (Bilder ab 1.4.1), und Bilder aus
+einem Ordner `demo/`.
 
 **Liste „Inhalte liefern“** (ab 1.4): dieselbe Antwort trägt je Stelle `need` (Pflicht, Zeichengrenze, Zahl der Bilder)
 und `length`, dazu `needs.collections` (Sammlungen außer Seitenbäumen: Felder eines Eintrags, Zahl der Einträge, davon
-Demo) und `needs.globals` (Felder je Global-Set mit Stand leer, Demo, gefüllt; der Demo-Stand merkt sich auch die Texte
-der Globals). Was nur der Kunde wissen muss, steht als eigener Schlüssel am Feld in der Blueprint, Statamic lässt ihn
+Demo) und `needs.globals` (Felder je Global-Set mit Stand leer, Demo, gefüllt; Texte der Globals merkt sich der Demo-Stand
+nur mit `--globals`, bei einem Relaunch stimmen Anschrift und Telefon meist schon). Was nur der Kunde wissen muss, steht als eigener Schlüssel am Feld in der Blueprint, Statamic lässt ihn
 stehen und zeigt ihn im Control Panel nicht:
 
 ```yaml

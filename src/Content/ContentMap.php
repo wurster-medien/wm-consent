@@ -18,7 +18,7 @@ use Statamic\Fieldtypes\Replicator;
  * Inhalte der Seiten für den Kundenbereich (Simon, 3.11.2026: Platzhalter prüfen und freigeben): je Eintrag mit Adresse
  * die Stellen (Texte und Bilder aus den Feldern der Blueprint, auch in Replicator, Bard, Grid und Gruppen) und die
  * Bereiche (Sets der obersten Ebene), jeweils mit Fingerabdruck. Demo ist eine Stelle, deren Text sich seit „Demo-Stand
- * merken“ (DemoStand) nicht geändert hat, oder ein Bild aus einem Ordner demo/. Jede Stelle geht mit ihrem Text bzw. Bild
+ * merken“ (DemoStand) nicht geändert hat, oder ein Bild aus einem Ordner demo/ (ab 1.4.1 auch jedes seitdem unveränderte Bild). Jede Stelle geht mit ihrem Text bzw. Bild
  * mit (ab 1.3.1), damit die Anmerkungs-Ebene des Kundenbereichs sie auf der Seite findet und abhaken lässt. Nur lesen.
  */
 final class ContentMap
@@ -35,23 +35,33 @@ final class ContentMap
     public function __construct(private readonly DemoStand $demo) {}
 
     /**
-     * Alle Texte aller Einträge, als Fingerabdrücke (für DemoStand::remember).
+     * Alle Texte und Bilder aller Einträge, als Fingerabdrücke (für DemoStand::remember); ab 1.4.1 auch die Bilder, damit
+     * Musterbilder außerhalb von demo/ als Platzhalter gelten.
      *
-     * @return list<string>
+     * @return array{texts: list<string>, images: list<string>}
      */
-    public function allTextFingerprints(): array
+    public function allFingerprints(): array
     {
-        $prints = [];
+        $prints = ['text' => [], 'image' => []];
 
         foreach (Entries::all() as $entry) {
             foreach ($this->spots($entry) as $spot) {
-                if ($spot['kind'] === 'text') {
-                    $prints[] = $spot['fingerprint'];
-                }
+                $prints[$spot['kind']][] = $spot['fingerprint'];
             }
         }
 
-        return array_values(array_unique($prints));
+        return ['texts' => array_values(array_unique($prints['text'])), 'images' => array_values(array_unique($prints['image']))];
+    }
+
+    /**
+     * Platzhalter: Bild aus demo/ oder (wie Texte) seit dem Demo-Stand unverändert.
+     *
+     * @param  array<string, mixed>  $spot
+     * @param  array<string, true>  $demo
+     */
+    public static function isDemo(array $spot, array $demo): bool
+    {
+        return ($spot['kind'] === 'image' && $spot['demo']) || isset($demo[$spot['fingerprint']]);
     }
 
     /**
@@ -72,7 +82,7 @@ final class ContentMap
 
         foreach ($entries as $entry) {
             $spots = array_map(function (array $spot) use ($demo): array {
-                $isDemo = $spot['kind'] === 'image' ? $spot['demo'] : $demo !== [] && isset($demo[$spot['fingerprint']]);
+                $isDemo = self::isDemo($spot, $demo);
                 $out = ['path' => $spot['path'], 'section' => $spot['section'], 'kind' => $spot['kind'], 'fingerprint' => $spot['fingerprint'], 'demo' => $isDemo];
 
                 /* Text jeder Stelle (wie er auf der Seite steht), damit die Anmerkungs-Ebene sie auf der Seite findet. */

@@ -59,7 +59,7 @@ final class ContentNeeds
             $demoEntries = $entries->filter(function (Entry $entry) use ($demo): bool {
                 $spots = $this->map->spots($entry);
 
-                return $spots !== [] && collect($spots)->every(fn (array $spot): bool => $spot['kind'] === 'image' ? $spot['demo'] : isset($demo[$spot['fingerprint']]));
+                return $spots !== [] && collect($spots)->every(fn (array $spot): bool => ContentMap::isDemo($spot, $demo));
             });
             $mount = $collection->mount();
 
@@ -115,7 +115,8 @@ final class ContentNeeds
     }
 
     /**
-     * Texte der Globals zum Demo-Stand (wm-consent:demo-stand), damit unsere Musterangaben im Impressum als Demo gelten.
+     * Texte der Globals zum Demo-Stand (wm-consent:demo-stand --globals), damit unsere Musterangaben im Impressum als Demo
+     * gelten; nur auf Wunsch, weil Anschrift und Telefon bei einem Relaunch meist schon stimmen.
      *
      * @return list<string>
      */

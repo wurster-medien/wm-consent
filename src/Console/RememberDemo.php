@@ -17,7 +17,7 @@ class RememberDemo extends Command
 {
     use RunsInPlease;
 
-    protected $signature = 'wm-consent:demo-stand {--vergessen : Gemerkten Demo-Stand löschen}';
+    protected $signature = 'wm-consent:demo-stand {--globals : Auch die Texte der Globals (Impressum, Kontakt) sind Muster} {--vergessen : Gemerkten Demo-Stand löschen}';
 
     protected $description = 'Kundenbereich: Demo-Stand der Texte merken (Platzhalter zum Prüfen)';
 
@@ -30,10 +30,11 @@ class RememberDemo extends Command
             return self::SUCCESS;
         }
 
-        /* Dazu die Globals (Musterangaben im Impressum), seit 1.4. */
-        $prints = array_values(array_unique([...$content->allTextFingerprints(), ...$needs->globalTextFingerprints()]));
-        $demo->remember($prints);
-        $this->info(count($prints).' Texte als Demo-Stand gemerkt.');
+        $prints = $content->allFingerprints();
+        /* Die Globals nur auf Wunsch (Musterangaben im Impressum), bei einem Relaunch stimmen sie meist schon. */
+        $texts = array_values(array_unique([...$prints['texts'], ...($this->option('globals') ? $needs->globalTextFingerprints() : [])]));
+        $demo->remember([...$texts, ...$prints['images']]);
+        $this->info(count($texts).' Texte und '.count($prints['images']).' Bilder als Demo-Stand gemerkt.');
 
         return self::SUCCESS;
     }
