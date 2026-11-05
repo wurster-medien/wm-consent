@@ -77,7 +77,7 @@ final class ContentNeeds
     }
 
     /**
-     * @return list<array{handle: string, title: string, fields: list<array{label: string, kind: string, state: string, need?: array<string, mixed>}>}>
+     * @return list<array{handle: string, title: string, fields: list<array{label: string, kind: string, state: string, text: string, need?: array<string, mixed>}>}>
      */
     public function globals(): array
     {
@@ -103,7 +103,9 @@ final class ContentNeeds
                 $filled = $field['kind'] === 'image' ? array_filter((array) $value) !== [] : ContentMap::normalize($text) !== '';
                 $isDemo = $filled && (($field['kind'] === 'image' && collect((array) $value)->contains(fn (mixed $asset): bool => is_string($asset) && preg_match('#(^|/)demo/#', $asset) === 1))
                     || ($field['kind'] !== 'image' && isset($demo[ContentMap::fingerprint($text)])));
-                $fields[] = [...$field, 'state' => $isDemo ? 'demo' : ($filled ? 'filled' : 'empty')];
+                /* Text dazu (ab 1.4.5, Simon 5.11.2026: „Daten anzeigen, könnten auch falsch sein“), Listen Zeile für Zeile; steht ohnehin öffentlich auf der Website. */
+                $shown = is_array($value) ? implode("\n", array_map(fn (mixed $line): string => ContentMap::normalize(is_string($line) ? $line : ''), $value)) : ContentMap::normalize($text);
+                $fields[] = [...$field, 'state' => $isDemo ? 'demo' : ($filled ? 'filled' : 'empty'), 'text' => $field['kind'] === 'image' ? '' : mb_substr(trim($shown), 0, 5000)];
             }
 
             if ($fields !== []) {

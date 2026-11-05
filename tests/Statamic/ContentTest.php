@@ -168,6 +168,7 @@ class ContentTest extends AddonTestCase
 
         $impressum = collect($data['needs']['globals'])->firstWhere('handle', 'impressum');
         $this->assertSame(['demo', 'empty', 'filled'], array_column($impressum['fields'], 'state'));
+        $this->assertSame(['Musterfirma GmbH', '', 'Amtsgericht Freiburg'], array_column($impressum['fields'], 'text'));
 
         /* Seitenbäume stehen schon über die Seiten. */
         Collection::find('pages')->structureContents(['root' => true])->save();
