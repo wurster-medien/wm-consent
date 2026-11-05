@@ -31,8 +31,8 @@ final class ContentMap
     /** So viele Seiten höchstens (große Blogs). */
     public const MAX_PAGES = 500;
 
-    /** So lang wird der Text einer Demo-Stelle mitgeschickt. */
-    private const MAX_TEXT = 500;
+    /** So lang wird der Text einer Stelle mitgeschickt (ab 1.4.3 für das Formular „Inhalte eintragen“ im Kundenbereich). */
+    private const MAX_TEXT = 5000;
 
     public function __construct(private readonly DemoStand $demo) {}
 
