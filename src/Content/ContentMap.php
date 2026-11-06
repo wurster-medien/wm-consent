@@ -21,7 +21,8 @@ use Statamic\Fieldtypes\Replicator;
  * die Stellen (Texte und Bilder aus den Feldern der Blueprint, auch in Replicator, Bard, Grid und Gruppen) und die
  * Bereiche (Sets der obersten Ebene), jeweils mit Fingerabdruck. Demo ist eine Stelle, deren Text sich seit „Demo-Stand
  * merken“ (DemoStand) nicht geändert hat, oder ein Bild aus einem Ordner demo/ (ab 1.4.1 auch jedes seitdem unveränderte Bild). Jede Stelle geht mit ihrem Text bzw. Bild
- * mit (ab 1.3.1), damit die Anmerkungs-Ebene des Kundenbereichs sie auf der Seite findet und abhaken lässt. Nur lesen.
+ * mit (ab 1.3.1), damit die Anmerkungs-Ebene des Kundenbereichs sie auf der Seite findet und abhaken lässt. Ab 1.5 dazu
+ * je Seite die wiederholbaren Felder (Listen, Grids, Bilder) mit Zahl und Höchstzahl. Nur lesen.
  */
 final class ContentMap
 {
@@ -116,6 +117,7 @@ final class ContentMap
                 'fingerprint' => self::hash(implode('|', array_map(fn (array $spot): string => $spot['path'].'='.$spot['fingerprint'], $spots))),
                 'sections' => $this->sections($entry, $spots),
                 'spots' => $spots,
+                'lists' => $this->lists[(string) $entry->id()] ?? [],
             ];
         }
 
@@ -223,6 +225,11 @@ final class ContentMap
     /** @var array<string, array<string, string>> Bezeichnung der Bereiche je Eintrag (Name des Sets) */
     private array $sectionLabels = [];
 
+    /** @var array<string, list<array<string, mixed>>> Wiederholbare Felder je Eintrag (lists in pages()) */
+    private array $lists = [];
+
+    private int $gridDepth = 0;
+
     /**
      * Stellen eines Eintrags in der Reihenfolge der Blueprint.
      *
@@ -231,6 +238,7 @@ final class ContentMap
     public function spots(Entry $entry): array
     {
         $spots = [];
+        $this->lists[(string) $entry->id()] = [];
         $this->walk($entry->blueprint()->fields(), $entry->data()->all(), '', null, $spots, (string) $entry->id(), true);
 
         return $spots;
@@ -259,6 +267,8 @@ final class ContentMap
                 foreach (is_array($value) ? array_values($value) : [] as $index => $item) {
                     $this->addText($spots, $path.'.'.$index, $section, $label, is_string($item) ? Markdown::parse($item) : $item, $field);
                 }
+
+                $this->addList($entryId, $field, $path, $section, 'list', is_array($value) ? count($value) : 0, null);
             } elseif ($type instanceof Bard) {
                 $this->walkBard($type, $value, $path, $section, $field, $spots, $entryId, $top);
             } elseif ($type instanceof Replicator) {
@@ -277,17 +287,25 @@ final class ContentMap
                     $this->walk($type->fields($set['type'], $index), $set, $key.'.', $own, $spots, $entryId, false);
                 }
             } elseif ($type instanceof Grid) {
+                /* Felder in einer Zeile sind kein eigenes wiederholbares Feld, die Zeile ist die Einheit. */
+                $this->gridDepth++;
+
                 foreach (is_array($value) ? array_values($value) : [] as $index => $row) {
                     if (is_array($row)) {
                         $this->walk($type->fields($index), $row, $path.'.'.$index.'.', $section, $spots, $entryId, false);
                     }
                 }
+
+                $this->gridDepth--;
+                $this->addList($entryId, $field, $path, $section, 'grid', is_array($value) ? count($value) : 0, $field->get('max_rows'), self::rowFields($type->fields()));
             } elseif ($type instanceof Group) {
                 $this->walk($type->fields(), is_array($value) ? $value : [], $path.'.', $section, $spots, $entryId, false);
             } elseif ($type instanceof Assets) {
                 $container = (string) ($field->get('container') ?? '');
+                $assets = array_values(array_filter((array) $value, 'is_string'));
+                $this->addList($entryId, $field, $path, $section, 'assets', count($assets), $field->get('max_files'));
 
-                foreach (array_values(array_filter((array) $value, 'is_string')) as $index => $asset) {
+                foreach ($assets as $index => $asset) {
                     $spots[] = [
                         'path' => $path.'.'.$index,
                         'section' => $section,
@@ -380,6 +398,56 @@ final class ContentMap
         }
 
         $spots[] = ['path' => $path, 'section' => $section, 'field' => $label, 'kind' => 'text', 'text' => $text, 'url' => null, 'demo' => false, 'fingerprint' => self::hash($text), 'need' => FieldNeeds::of($field)];
+    }
+
+    /**
+     * Wiederholbares Feld (ab 1.5, Simon 6.11.2026: im Formular „Inhalte eintragen“ Zeilen und Einträge hinzufügen oder
+     * weglassen): Liste, Grid oder Bilder mit ihrem Pfad, der Zahl der Einträge (auch 0, dann gibt es keine Stelle) und der
+     * Höchstzahl aus der Blueprint; beim Grid die Felder einer Zeile.
+     *
+     * @param  list<array<string, mixed>>  $fields
+     */
+    private function addList(string $entryId, Field $field, string $path, ?string $section, string $type, int $count, mixed $max, array $fields = []): void
+    {
+        if ($this->gridDepth > 0 || FieldNeeds::skipped($field) || ($type === 'grid' && $fields === [])) {
+            return;
+        }
+
+        $this->lists[$entryId][] = array_filter([
+            'path' => $path,
+            'section' => $section,
+            'field' => (string) ($field->display() ?: $field->handle()),
+            'type' => $type,
+            'count' => $count,
+            'max' => is_numeric($max) && (int) $max > 0 ? (int) $max : null,
+            'need' => FieldNeeds::of($field),
+            'fields' => $fields,
+        ], fn (mixed $value, string $key): bool => $value !== null && ($value !== [] || $key === 'fields' && $type === 'grid'), ARRAY_FILTER_USE_BOTH);
+    }
+
+    /**
+     * Felder einer Grid-Zeile mit Text oder Bildern.
+     *
+     * @return list<array{handle: string, label: string, kind: string, need: array<string, mixed>}>
+     */
+    private static function rowFields(Fields $fields): array
+    {
+        $row = [];
+
+        foreach ($fields->all() as $handle => $field) {
+            /** @var Field $field */
+            $kind = match (true) {
+                in_array($field->type(), [...self::TEXT_TYPES, 'list', 'bard'], true) => 'text',
+                $field->fieldtype() instanceof Assets => 'image',
+                default => null,
+            };
+
+            if ($kind !== null && ! FieldNeeds::skipped($field)) {
+                $row[] = ['handle' => (string) $handle, 'label' => (string) ($field->display() ?: $handle), 'kind' => $kind, 'need' => FieldNeeds::of($field)];
+            }
+        }
+
+        return $row;
     }
 
     private function setLabel(Replicator $type, string $handle): string

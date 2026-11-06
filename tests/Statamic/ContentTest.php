@@ -178,6 +178,37 @@ class ContentTest extends AddonTestCase
         GlobalSet::find('impressum')?->delete();
     }
 
+    public function test_repeatable_fields_with_count_and_limit(): void
+    {
+        Blueprint::make('stelle')->setNamespace('collections.pages')->setContents(['tabs' => ['main' => ['sections' => [['fields' => [
+            ['handle' => 'title', 'field' => ['type' => 'text']],
+            ['handle' => 'aufgaben', 'field' => ['type' => 'list', 'display' => 'Aufgaben']],
+            ['handle' => 'erwartungen', 'field' => ['type' => 'list', 'display' => 'Erwartungen']],
+            ['handle' => 'zahlen', 'field' => ['type' => 'grid', 'display' => 'Zahlen', 'max_rows' => 4, 'fields' => [
+                ['handle' => 'zahl', 'field' => ['type' => 'text', 'display' => 'Zahl']],
+                ['handle' => 'bild', 'field' => ['type' => 'assets', 'container' => 'assets', 'max_files' => 1]],
+                ['handle' => 'farbe', 'field' => ['type' => 'color']],
+            ]]],
+            ['handle' => 'galerie', 'field' => ['type' => 'assets', 'container' => 'assets', 'display' => 'Galerie', 'max_files' => 6]],
+            ['handle' => 'intern', 'field' => ['type' => 'list', 'wm_need' => false]],
+        ]]]]]])->save();
+        Entry::make()->collection('pages')->blueprint('stelle')->slug('gaertner')->data([
+            'title' => 'Gärtner',
+            'aufgaben' => ['Aufgabe 1', 'Aufgabe 2'],
+            'zahlen' => [['zahl' => '25'], ['zahl' => '300']],
+        ])->save();
+
+        $lists = collect($this->content()->assertOk()->json('pages.0.lists'))->keyBy('path');
+
+        $this->assertSame(['aufgaben', 'erwartungen', 'zahlen', 'galerie'], $lists->keys()->all());
+        $this->assertSame(['type' => 'list', 'count' => 2], array_intersect_key($lists['aufgaben'], ['type' => 1, 'count' => 1]));
+        $this->assertSame(0, $lists['erwartungen']['count']);
+        $this->assertSame('Aufgaben', $lists['aufgaben']['field']);
+        $this->assertSame(['grid', 2, 4], [$lists['zahlen']['type'], $lists['zahlen']['count'], $lists['zahlen']['max']]);
+        $this->assertSame([['zahl', 'text'], ['bild', 'image']], array_map(fn (array $field): array => [$field['handle'], $field['kind']], $lists['zahlen']['fields']));
+        $this->assertSame(['assets', 0, 6], [$lists['galerie']['type'], $lists['galerie']['count'], $lists['galerie']['max']]);
+    }
+
     public function test_pages_follow_the_navigation(): void
     {
         Collection::make('nav')->routes('/{slug}')->structureContents(['root' => false])->save();
