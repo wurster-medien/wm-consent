@@ -134,6 +134,8 @@ class ContentTest extends AddonTestCase
             ['handle' => 'foto', 'field' => ['type' => 'assets', 'container' => 'assets', 'display' => 'Foto', 'max_files' => 1, 'wm_image_width' => 1000, 'wm_hint' => 'Hochformat, ruhiger Hintergrund']],
             ['handle' => 'slug', 'field' => ['type' => 'slug']],
             ['handle' => 'intern', 'field' => ['type' => 'text', 'wm_need' => false]],
+            ['handle' => 'aufgaben', 'field' => ['type' => 'list', 'display' => 'Aufgaben']],
+            ['handle' => 'zahlen', 'field' => ['type' => 'grid', 'display' => 'Zahlen', 'max_rows' => 3, 'fields' => [['handle' => 'zahl', 'field' => ['type' => 'text', 'display' => 'Zahl']]]]],
         ]]]]]])->save();
         Entry::make()->collection('team')->slug('erika')->data(['vorname' => 'Erika', 'foto' => ['demo/erika.jpg']])->save();
         /* Ein Musterbild außerhalb von demo/ gilt ab 1.4.1 auch als Platzhalter, solange es bleibt. */
@@ -162,7 +164,9 @@ class ContentTest extends AddonTestCase
         $team = collect($data['needs']['collections'])->firstWhere('handle', 'team');
         $this->assertSame(3, $team['entries']);
         $this->assertSame(2, $team['demo_entries']);
-        $this->assertSame(['Vorname', 'Foto'], array_column($team['fields'], 'label'));
+        $this->assertSame(['Vorname', 'Foto', 'Aufgaben', 'Zahlen'], array_column($team['fields'], 'label'));
+        $this->assertSame('list', $team['fields'][2]['repeat']);
+        $this->assertSame(['grid', 3, 'zahl'], [$team['fields'][3]['repeat'], $team['fields'][3]['max'], $team['fields'][3]['fields'][0]['handle']]);
         $this->assertSame(['max_files' => 1, 'width' => 1000, 'hint' => 'Hochformat, ruhiger Hintergrund'], $team['fields'][1]['need']);
         $this->assertNotNull(collect($data['needs']['collections'])->firstWhere('handle', 'pages'));
 

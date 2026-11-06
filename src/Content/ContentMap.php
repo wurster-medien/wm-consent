@@ -430,7 +430,7 @@ final class ContentMap
      *
      * @return list<array{handle: string, label: string, kind: string, need: array<string, mixed>}>
      */
-    private static function rowFields(Fields $fields): array
+    public static function rowFields(Fields $fields): array
     {
         $row = [];
 

@@ -11,6 +11,7 @@ use Statamic\Fields\Field;
 use Statamic\Fields\Fields;
 use Statamic\Fieldtypes\Assets\Assets;
 use Statamic\Fieldtypes\Bard;
+use Statamic\Fieldtypes\Grid;
 use Statamic\Fieldtypes\Group;
 use Statamic\Fieldtypes\Replicator;
 
@@ -150,7 +151,7 @@ final class ContentNeeds
      * Felder in der Reihenfolge der Blueprint, Gruppen aufgelöst; Replicator und Bard mit Sets als „frei aufgebaut“.
      *
      * @param  array<string, mixed>|null  $values  mit Werten (Globals), sonst ohne
-     * @return list<array{label: string, kind: string, need?: array<string, mixed>, value?: mixed}>
+     * @return list<array{label: string, kind: string, need?: array<string, mixed>, value?: mixed, repeat?: string, max?: int, fields?: list<array<string, mixed>>}>
      */
     private function fields(Fields $fields, string $prefix, bool $skipTitle, ?array $values = null): array
     {
@@ -166,6 +167,8 @@ final class ContentNeeds
             $label = $prefix.(string) ($field->display() ?: $handle);
             $kind = match (true) {
                 $type instanceof Group => 'group',
+                /* Grid (ab 1.5) nur für neue Einträge einer Sammlung, mit den Feldern einer Zeile. */
+                $type instanceof Grid && $values === null => 'grid',
                 $type instanceof Replicator, $type instanceof Bard && $type->config('sets') => 'content',
                 $type instanceof Bard, in_array($field->type(), self::TEXT_TYPES, true) => 'text',
                 $type instanceof Assets => 'image',
@@ -178,11 +181,27 @@ final class ContentNeeds
                 continue;
             }
 
+            if ($kind === 'grid') {
+                $columns = ContentMap::rowFields($type->fields());
+
+                if ($columns !== []) {
+                    $max = $field->get('max_rows');
+                    $list[] = array_filter(['label' => $label, 'kind' => 'text', 'repeat' => 'grid', 'max' => is_numeric($max) && (int) $max > 0 ? (int) $max : null, 'fields' => $columns], fn (mixed $value): bool => $value !== null);
+                }
+
+                continue;
+            }
+
             if ($kind === null) {
                 continue;
             }
 
             $row = ['label' => $label, 'kind' => $kind];
+
+            /* Liste (ab 1.5): im Kundenbereich Zeile für Zeile mit „+ Weitere Zeile“. */
+            if ($field->type() === 'list' && $values === null) {
+                $row['repeat'] = 'list';
+            }
 
             if (($need = FieldNeeds::of($field)) !== []) {
                 $row['need'] = $need;
