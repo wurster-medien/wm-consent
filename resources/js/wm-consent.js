@@ -562,7 +562,7 @@ function loadAnnotations() {
     }
 
     const script = document.createElement('script');
-    script.src = 'https://konto.wurster-medien.de/js/wm-anmerkungen.js';
+    script.src = 'https://api.wurster-medien.de/js/wm-anmerkungen.js';
     script.async = true;
     document.head.appendChild(script);
 }

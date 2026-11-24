@@ -12,7 +12,7 @@ Ein Kern für alle Systeme:
 - **Statamic 5 und 6**: Addon in diesem Repo (`src/ServiceProvider.php`, Tag `{{ wm_consent }}`).
 - **MODX 2 und 3**: Snippet, Plugin und Chunk, Anleitung in [`modx/README.md`](modx/README.md).
 
-Der Kundenbereich (konto.wurster-medien.de, „Websites prüfen“) erkennt den Banner am Merkmal `data-wm-consent`.
+Der Kundenbereich (mein.wurster-medien.de, „Websites prüfen“) erkennt den Banner am Merkmal `data-wm-consent`.
 
 ## Statamic
 
